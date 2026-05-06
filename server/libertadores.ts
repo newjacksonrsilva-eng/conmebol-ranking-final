@@ -106,6 +106,92 @@ export const libertadoresRouter = router({
     byPhase: publicProcedure
       .input(z.object({ season: z.number().default(CURRENT_SEASON), phase: z.string() }))
       .query(async ({ input }) => await db.getMatchesByPhase(input.season, input.phase)),
+
+    create: publicProcedure
+      .input(
+        z.object({
+          season: z.number().default(CURRENT_SEASON),
+          phase: z.string(),
+          group: z.string().optional(),
+          homeTeamId: z.number(),
+          awayTeamId: z.number(),
+          matchDate: z.date(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        await getPool().query(
+          `
+          INSERT INTO matches (
+            season,
+            phase,
+            \`group\`,
+            homeTeamId,
+            awayTeamId,
+            homeScore,
+            awayScore,
+            status,
+            matchDate
+          )
+          VALUES (?, ?, ?, ?, ?, NULL, NULL, 'scheduled', ?)
+          `,
+          [
+            input.season,
+            input.phase,
+            input.group || null,
+            input.homeTeamId,
+            input.awayTeamId,
+            input.matchDate,
+          ]
+        );
+
+        return { success: true };
+      }),
+
+    update: publicProcedure
+      .input(
+        z.object({
+          id: z.number(),
+          homeScore: z.number().nullable().optional(),
+          awayScore: z.number().nullable().optional(),
+          status: z.enum(["scheduled", "in_progress", "completed"]).optional(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const fields: string[] = [];
+        const params: any[] = [];
+
+        if ("homeScore" in input) {
+          fields.push("homeScore = ?");
+          params.push(input.homeScore ?? null);
+        }
+
+        if ("awayScore" in input) {
+          fields.push("awayScore = ?");
+          params.push(input.awayScore ?? null);
+        }
+
+        if ("status" in input) {
+          fields.push("status = ?");
+          params.push(input.status ?? null);
+        }
+
+        if (fields.length === 0) {
+          return { success: true };
+        }
+
+        params.push(input.id);
+
+        await getPool().query(
+          `
+          UPDATE matches
+          SET ${fields.join(", ")}
+          WHERE id = ?
+          `,
+          params
+        );
+
+        return { success: true };
+      }),
   }),
 
   discipline: router({

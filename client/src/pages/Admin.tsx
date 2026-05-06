@@ -251,15 +251,36 @@ export default function Admin() {
   } = trpc.libertadores.discipline.list.useQuery({ season: Number(season) });
 
   const createMatchMutation = trpc.libertadores.matches.create.useMutation({
-    onSuccess: () => {
-      refetchMatches();
-      alert('Jogo criado com sucesso!');
+    onSuccess: async () => {
+      await refetchMatches();
+
+      setSelectedGroup('Todos');
+      setSelectedStatus('all');
+      setActiveTab('results');
+
+      setNewMatch({
+        homeTeamId: '',
+        awayTeamId: '',
+        phase: 'Fase de Grupos',
+        group: 'A',
+        matchDate: new Date().toISOString().split('T')[0],
+      });
+
+      alert('Jogo criado com sucesso! Ele já deve aparecer em Resultados rápidos.');
+    },
+    onError: (error) => {
+      console.error('Erro ao criar jogo:', error);
+      alert(`Erro ao criar jogo: ${error.message}`);
     },
   });
 
   const updateMatchMutation = trpc.libertadores.matches.update.useMutation({
-    onSuccess: () => {
-      refetchMatches();
+    onSuccess: async () => {
+      await refetchMatches();
+    },
+    onError: (error) => {
+      console.error('Erro ao atualizar jogo:', error);
+      alert(`Erro ao atualizar jogo: ${error.message}`);
     },
   });
 
@@ -590,7 +611,7 @@ export default function Admin() {
               </div>
             ) : filteredMatches.length === 0 ? (
               <div className="rounded-3xl border border-slate-800 bg-slate-900/80 p-10 text-center text-slate-400">
-                Nenhum jogo encontrado para os filtros selecionados.
+                Nenhum jogo encontrado para os filtros selecionados. Confira se a temporada no topo está correta e clique em Limpar filtros.
               </div>
             ) : (
               Object.entries(matchesByGroup).map(([groupName, groupMatches]) => (
@@ -855,6 +876,18 @@ export default function Admin() {
                 </div>
               </div>
 
+              {createMatchMutation.isError && (
+                <div className="rounded-2xl border border-red-500/25 bg-red-500/10 px-4 py-3 text-sm font-bold text-red-200">
+                  Erro ao criar jogo: {createMatchMutation.error.message}
+                </div>
+              )}
+
+              {createMatchMutation.isPending && (
+                <div className="rounded-2xl border border-blue-500/25 bg-blue-500/10 px-4 py-3 text-sm font-bold text-blue-200">
+                  Salvando jogo no banco...
+                </div>
+              )}
+
               <Button
                 onClick={() => {
                   if (!newMatch.homeTeamId || !newMatch.awayTeamId) {
@@ -867,13 +900,24 @@ export default function Admin() {
                     return;
                   }
 
-                  createMatchMutation.mutate({
+                  const payload = {
                     homeTeamId: Number(newMatch.homeTeamId),
                     awayTeamId: Number(newMatch.awayTeamId),
                     phase: newMatch.phase,
                     group: newMatch.group || undefined,
                     matchDate: new Date(newMatch.matchDate),
                     season: Number(season),
+                  };
+
+                  console.log('Criando jogo:', payload);
+                  createMatchMutation.mutate(payload);
+
+                  setNewMatch({
+                    homeTeamId: '',
+                    awayTeamId: '',
+                    phase: 'Fase de Grupos',
+                    group: newMatch.group || 'A',
+                    matchDate: new Date().toISOString().split('T')[0],
                   });
                 }}
                 disabled={createMatchMutation.isPending}

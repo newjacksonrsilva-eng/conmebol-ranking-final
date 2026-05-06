@@ -734,14 +734,34 @@ function Bracket2025() {
         <div className="absolute inset-0 opacity-[0.04] bg-[radial-gradient(circle_at_center,_white_1px,_transparent_1px)] [background-size:24px_24px]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(30,64,175,0.20),_transparent_55%)]" />
 
-        <div className="relative z-10 grid grid-cols-7 gap-6 text-white">
-          <div className="text-center text-xs font-black">Oitavas de final</div>
-          <div className="text-center text-xs font-black">Quartas de final</div>
-          <div className="text-center text-xs font-black">Semifinal</div>
-          <div className="text-center text-xs font-black">Final</div>
-          <div className="text-center text-xs font-black">Semifinal</div>
-          <div className="text-center text-xs font-black">Quartas de final</div>
-          <div className="text-center text-xs font-black">Oitavas de final</div>
+        <div className="relative z-10 h-6 text-white text-xs font-black">
+          <div className="absolute w-[150px] text-center" style={{ left: x.leftR16 }}>
+            Oitavas de final
+          </div>
+
+          <div className="absolute w-[150px] text-center" style={{ left: x.leftQF }}>
+            Quartas de final
+          </div>
+
+          <div className="absolute w-[150px] text-center" style={{ left: x.leftSF }}>
+            Semifinal
+          </div>
+
+          <div className="absolute w-[150px] text-center" style={{ left: x.final }}>
+            Final
+          </div>
+
+          <div className="absolute w-[150px] text-center" style={{ left: x.rightSF }}>
+            Semifinal
+          </div>
+
+          <div className="absolute w-[150px] text-center" style={{ left: x.rightQF }}>
+            Quartas de final
+          </div>
+
+          <div className="absolute w-[150px] text-center" style={{ left: x.rightR16 }}>
+            Oitavas de final
+          </div>
         </div>
 
         <div className="relative z-10 h-[690px] mt-8">

@@ -1,0 +1,83 @@
+const normalizeTeamName = (name: string) => {
+  const map: Record<string, string> = {
+    'Universitario': 'Universitário', 'Bolivar': 'Bolívar', 'Barcelona': 'Barcelona Guayaquil',
+    'Rosario Central': 'Rosário Central', 'Atletico Mineiro': 'Atlético Mineiro',
+    'Atletico Nacional': 'Atlético Nacional', 'Sao Paulo': 'São Paulo', 'Gremio': 'Grêmio',
+    'Velez Sarsfield': 'Vélez Sarsfield', 'Penarol': 'Peñarol', 'Ind. del Valle': 'Independiente del Valle',
+    'Independiente DV': 'Independiente del Valle', 'Athletico-PR': 'Atlético PR',
+    'Athletico Paranaense': 'Atlético PR', 'LDU': 'LDU Quito'
+  };
+  return map[name] || name;
+};
+
+const clubLogos: Record<string, string> = {
+  'Palmeiras': 'https://assets.football-logos.cc/logos/brazil/1500x1500/palmeiras.e2be744c.png',
+  'Flamengo': 'https://assets.football-logos.cc/logos/brazil/1500x1500/flamengo.9c5e3332.png',
+  'LDU Quito': 'https://assets.football-logos.cc/logos/ecuador/1500x1500/liga-de-quito.b0cd4b40.png',
+  'Racing Club': 'https://assets.football-logos.cc/logos/argentina/1500x1500/racing-club.2e7a0fc0.png',
+  'Estudiantes': 'https://assets.football-logos.cc/logos/argentina/1500x1500/estudiantes-de-la-plata.c9b944dc.png',
+  'São Paulo': 'https://assets.football-logos.cc/logos/brazil/1500x1500/sao-paulo.84a524e3.png',
+  'Vélez Sarsfield': 'https://assets.football-logos.cc/logos/argentina/1500x1500/velez-sarsfield.15cda916.png',
+  'River Plate': 'https://assets.football-logos.cc/logos/argentina/1500x1500/river-plate.1ac01d84.png',
+  'Botafogo': 'https://assets.football-logos.cc/logos/brazil/1500x1500/botafogo.fd9f548d.png',
+  'Peñarol': 'https://assets.football-logos.cc/logos/uruguay/1500x1500/penarol.fbcfdc22.png',
+  'Libertad': 'https://assets.football-logos.cc/logos/paraguay/1500x1500/libertad.e335e5a7.png',
+  'Atlético Nacional': 'https://assets.football-logos.cc/logos/colombia/1500x1500/atletico-nacional.127fca22.png',
+  'Independiente del Valle': 'https://assets.football-logos.cc/logos/ecuador/1500x1500/independiente-del-valle.4a827b1c.png',
+  'Universitário': 'https://assets.football-logos.cc/logos/peru/1500x1500/universitario.868fa07a.png',
+  'Internacional': 'https://assets.football-logos.cc/logos/brazil/1500x1500/internacional.319b9dc2.png',
+  'Fortaleza': 'https://assets.football-logos.cc/logos/brazil/1500x1500/fortaleza.e603dd38.png',
+  'Boca Juniors': 'https://assets.football-logos.cc/logos/argentina/1500x1500/boca-juniors.009a4e59.png',
+  'Cerro Porteño': 'https://assets.football-logos.cc/logos/paraguay/1500x1500/cerro-porteno.cc8b5968.png',
+  'Nacional': 'https://assets.football-logos.cc/logos/uruguay/1500x1500/nacional.cb8b210e.png',
+  'Independiente Rivadavia': 'https://assets.football-logos.cc/logos/argentina/1500x1500/independiente-rivadavia.f8dad054.png',
+  'Bahia': 'https://assets.football-logos.cc/logos/brazil/1500x1500/bahia.406c80c7.png',
+  'Universidad de Chile': 'https://assets.football-logos.cc/logos/chile/1500x1500/universidad-de-chile.bcafa00a.png',
+  'Corinthians': 'https://assets.football-logos.cc/logos/brazil/1500x1500/corinthians.689ec041.png',
+  'Bolívar': 'https://assets.football-logos.cc/logos/bolivia/1500x1500/bolivar.68ee342b.png',
+  'Rosário Central': 'https://assets.football-logos.cc/logos/argentina/1500x1500/rosario-central.ce18e01e.png',
+  'Colo-Colo': 'https://assets.football-logos.cc/logos/chile/1500x1500/colo-colo.20795596.png',
+  'Alianza Lima': 'https://assets.football-logos.cc/logos/peru/1500x1500/alianza-lima.d8192e17.png',
+  'Olimpia': 'https://assets.football-logos.cc/logos/paraguay/1500x1500/olimpia.9f04800c.png',
+  'Atlético Mineiro': 'https://assets.football-logos.cc/logos/brazil/1500x1500/atletico-mineiro.481ef277.png',
+  'Independiente': 'https://assets.football-logos.cc/logos/argentina/1500x1500/independiente.fe207eca.png',
+  'Talleres': 'https://assets.football-logos.cc/logos/argentina/1500x1500/talleres.c4234929.png',
+  'Barcelona Guayaquil': 'https://assets.football-logos.cc/logos/ecuador/1500x1500/barcelona-sc.f30b579b.png',
+  'Cruzeiro': 'https://assets.football-logos.cc/logos/brazil/1500x1500/cruzeiro.d39bf864.png',
+  'Argentinos Juniors': 'https://assets.football-logos.cc/logos/argentina/1500x1500/argeninos-juniors.3fed76dc.png',
+  'Lanús': 'https://assets.football-logos.cc/logos/argentina/1500x1500/lanus.ec7cbb2a.png',
+  'The Strongest': 'https://assets.football-logos.cc/logos/bolivia/1500x1500/the-strongest.81140066.png',
+  'Sporting Cristal': 'https://assets.football-logos.cc/logos/peru/1500x1500/sporting-cristal.976ec8c2.png',
+  'Atlético PR': 'https://assets.football-logos.cc/logos/brazil/1500x1500/athletico-paranaense.38705958.png',
+  'Coquimbo Unido': 'https://assets.football-logos.cc/logos/chile/1500x1500/coquimbo-unido.9d78dd7f.png',
+  'Grêmio': 'https://assets.football-logos.cc/logos/brazil/1500x1500/gremio.e8c992c0.png',
+  'Mirassol': 'https://assets.football-logos.cc/logos/brazil/1500x1500/mirassol.5153c341.png',
+  'Universidad Católica': 'https://assets.football-logos.cc/logos/chile/1500x1500/universidad-catolica.5f82b9c5.png',
+  'Fluminense': 'https://assets.football-logos.cc/logos/brazil/1500x1500/fluminense.21ef58d1.png',
+  'Vitória': 'https://assets.football-logos.cc/logos/brazil/1500x1500/vitoria.839132be.png',
+  'San Lorenzo': 'https://assets.football-logos.cc/logos/argentina/1500x1500/san-lorenzo-de-almagro.a0e4e931.png',
+  'Carabobo': 'https://assets.football-logos.cc/logos/venezuela/1500x1500/carabobo.9523f7a0.png',
+  'Huracán': 'https://assets.football-logos.cc/logos/argentina/1500x1500/ca-huracan.7f8adc63.png',
+  'Deportivo Táchira': 'https://assets.football-logos.cc/logos/venezuela/1500x1500/deportivo-tachira.6cd551a4.png',
+  'Platense': 'https://assets.football-logos.cc/logos/argentina/1500x1500/platense.055fcd6f.png',
+  'Cuiabá': 'https://assets.football-logos.cc/logos/brazil/1500x1500/cuiaba.b72d27d6.png',
+  'Tolima': 'https://assets.football-logos.cc/logos/colombia/1500x1500/deportes-tolima.a8229a1b.png',
+  'Cusco': 'https://assets.football-logos.cc/logos/peru/1500x1500/cusco.df4d93a9.png',
+  'Independiente Medellín': 'https://assets.football-logos.cc/logos/colombia/1500x1500/independiente-medellin.cbcaecab.png',
+  'Deportivo La Guaira': 'https://assets.football-logos.cc/logos/venezuela/1500x1500/deportivo-la-guaira.7c49271f.png',
+  'Santa Fe': 'https://assets.football-logos.cc/logos/colombia/1500x1500/independiente-santa-fe.e7bd3b91.png',
+  'Junior Barranquilla': 'https://assets.football-logos.cc/logos/colombia/1500x1500/atletico-junior.02cdb256.png',
+  'Always Ready': 'https://assets.football-logos.cc/logos/bolivia/1500x1500/always-ready.d109aa21.png',
+  'Universidad Central': 'https://assets.football-logos.cc/logos/venezuela/1500x1500/universidad-central.dce028a7.png',
+  'Central Córdoba': 'https://assets.football-logos.cc/logos/argentina/1500x1500/central-cordoba.0147cdf5.png',
+  'Racing': 'https://assets.football-logos.cc/logos/argentina/1500x1500/racing-club.2e7a0fc0.png',
+  'Atlético Bucaramanga': 'https://assets.football-logos.cc/logos/colombia/1500x1500/bucaramanga.74e87b72.png',
+  'Nacional (URU)': 'https://assets.football-logos.cc/logos/uruguay/1500x1500/nacional.cb8b210e.png',
+  'San Antonio Bulo Bulo': 'https://assets.football-logos.cc/logos/bolivia/1500x1500/san-antonio-bulo-bulo.2a82d4f7.png',
+};
+
+export { normalizeTeamName, clubLogos };
+
+
+
+

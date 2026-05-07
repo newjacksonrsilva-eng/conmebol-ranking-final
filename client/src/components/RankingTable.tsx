@@ -1,6 +1,6 @@
-import { useState, useMemo, useEffect } from 'react';
-import { Trophy } from 'lucide-react';
-import { rankingData } from '@/data/ranking';
+import { useState, useMemo, useEffect } from "react";
+import { ChevronDown, ChevronUp, Trophy } from "lucide-react";
+import { rankingData } from "@/data/ranking";
 import {
   grupos2025,
   oitavas2025,
@@ -8,12 +8,12 @@ import {
   semis2025,
   final2025,
   type KnockoutMatch,
-} from '@/data/libertadores2025';
-import { getTeamLogoById } from '@/data/teamLogos';
-import { trpc } from '@/lib/trpc';
+} from "@/data/libertadores2025";
+import { getTeamLogoById } from "@/data/teamLogos";
+import { trpc } from "@/lib/trpc";
 
-type Aba = 'mundial' | '2025' | '2026';
-type SubAba2025 = 'grupos' | 'mata-mata';
+type Aba = "mundial" | "2025" | "2026";
+type SubAba2025 = "grupos" | "mata-mata";
 
 interface RankingTableProps {
   onLeaderScoreChange?: (score: number) => void;
@@ -21,258 +21,258 @@ interface RankingTableProps {
 
 const normalizeTeamName = (name: string) => {
   const map: Record<string, string> = {
-    'Nacional (URU)': 'Nacional',
-    'Central Cordoba': 'Central Córdoba',
-    'Ind. Rivadavia': 'Independiente Rivadavia',
-    'Universitario': 'Universitário',
-    'Bolivar': 'Bolívar',
-    'Barcelona': 'Barcelona Guayaquil',
-    'Rosario Central': 'Rosário Central',
-    'Atletico Mineiro': 'Atlético Mineiro',
-    'Atletico Nacional': 'Atlético Nacional',
-    'Sao Paulo': 'São Paulo',
-    'Gremio': 'Grêmio',
-    'Velez Sarsfield': 'Vélez Sarsfield',
-    'Penarol': 'Peñarol',
-    'Ind. del Valle': 'Independiente del Valle',
-    'Independiente DV': 'Independiente del Valle',
-    'Athletico-PR': 'Atlético PR',
-    'Athletico Paranaense': 'Atlético PR',
-    'LDU': 'LDU Quito',
+    "Nacional (URU)": "Nacional",
+    "Central Cordoba": "Central Córdoba",
+    "Ind. Rivadavia": "Independiente Rivadavia",
+    Universitario: "Universitário",
+    Bolivar: "Bolívar",
+    Barcelona: "Barcelona Guayaquil",
+    "Rosario Central": "Rosário Central",
+    "Atletico Mineiro": "Atlético Mineiro",
+    "Atletico Nacional": "Atlético Nacional",
+    "Sao Paulo": "São Paulo",
+    Gremio: "Grêmio",
+    "Velez Sarsfield": "Vélez Sarsfield",
+    Penarol: "Peñarol",
+    "Ind. del Valle": "Independiente del Valle",
+    "Independiente DV": "Independiente del Valle",
+    "Athletico-PR": "Atlético PR",
+    "Athletico Paranaense": "Atlético PR",
+    LDU: "LDU Quito",
   };
 
   return map[name] || name;
 };
 
 const fallbackTeamIdByName: Record<string, number> = {
-  'Independiente Medellín': 1,
-  'Estudiantes': 2,
-  'Cusco': 3,
-  'Flamengo': 4,
-  'Tolima': 5,
-  'Universitário': 6,
-  'Universitario': 6,
-  'Coquimbo Unido': 7,
-  'Nacional': 8,
-  'Nacional (URU)': 8,
-  'Deportivo La Guaira': 9,
-  'Fluminense': 10,
-  'Independiente Rivadavia': 11,
-  'Ind. Rivadavia': 11,
-  'Bolívar': 12,
-  'Bolivar': 12,
-  'Barcelona Guayaquil': 13,
-  'Barcelona': 13,
-  'Cruzeiro': 14,
-  'Universidad Católica': 15,
-  'Boca Juniors': 16,
-  'Platense': 17,
-  'Corinthians': 18,
-  'Santa Fe': 19,
-  'Peñarol': 20,
-  'Penarol': 20,
-  'Junior Barranquilla': 21,
-  'Junior': 21,
-  'Palmeiras': 22,
-  'Sporting Cristal': 23,
-  'Cerro Porteño': 24,
-  'Always Ready': 25,
-  'LDU Quito': 26,
-  'LDU': 26,
-  'Mirassol': 27,
-  'Lanús': 28,
-  'Rosário Central': 29,
-  'Rosario Central': 29,
-  'Independiente del Valle': 30,
-  'Ind. del Valle': 30,
-  'Universidad Central': 31,
-  'Libertad': 32,
-  'River Plate': 33,
-  'Racing Club': 34,
-  'Racing': 34,
-  'Talleres': 35,
-  'San Lorenzo': 36,
-  'Atlético Mineiro': 37,
-  'Atletico Mineiro': 37,
-  'São Paulo': 38,
-  'Sao Paulo': 38,
-  'Botafogo': 39,
-  'Grêmio': 40,
-  'Gremio': 40,
-  'Internacional': 41,
-  'Atlético PR': 42,
-  'Athletico-PR': 42,
-  'Athletico Paranaense': 42,
-  'Fortaleza': 43,
-  'Bahia': 44,
-  'Colo-Colo': 45,
-  'Atlético Bucaramanga': 46,
-  'Atlético Nacional': 47,
-  'Olimpia': 48,
-  'The Strongest': 49,
-  'Carabobo': 50,
-  'Deportivo Táchira': 51,
-  'San Antonio Bulo Bulo': 52,
+  "Independiente Medellín": 1,
+  Estudiantes: 2,
+  Cusco: 3,
+  Flamengo: 4,
+  Tolima: 5,
+  Universitário: 6,
+  Universitario: 6,
+  "Coquimbo Unido": 7,
+  Nacional: 8,
+  "Nacional (URU)": 8,
+  "Deportivo La Guaira": 9,
+  Fluminense: 10,
+  "Independiente Rivadavia": 11,
+  "Ind. Rivadavia": 11,
+  Bolívar: 12,
+  Bolivar: 12,
+  "Barcelona Guayaquil": 13,
+  Barcelona: 13,
+  Cruzeiro: 14,
+  "Universidad Católica": 15,
+  "Boca Juniors": 16,
+  Platense: 17,
+  Corinthians: 18,
+  "Santa Fe": 19,
+  Peñarol: 20,
+  Penarol: 20,
+  "Junior Barranquilla": 21,
+  Junior: 21,
+  Palmeiras: 22,
+  "Sporting Cristal": 23,
+  "Cerro Porteño": 24,
+  "Always Ready": 25,
+  "LDU Quito": 26,
+  LDU: 26,
+  Mirassol: 27,
+  Lanús: 28,
+  "Rosário Central": 29,
+  "Rosario Central": 29,
+  "Independiente del Valle": 30,
+  "Ind. del Valle": 30,
+  "Universidad Central": 31,
+  Libertad: 32,
+  "River Plate": 33,
+  "Racing Club": 34,
+  Racing: 34,
+  Talleres: 35,
+  "San Lorenzo": 36,
+  "Atlético Mineiro": 37,
+  "Atletico Mineiro": 37,
+  "São Paulo": 38,
+  "Sao Paulo": 38,
+  Botafogo: 39,
+  Grêmio: 40,
+  Gremio: 40,
+  Internacional: 41,
+  "Atlético PR": 42,
+  "Athletico-PR": 42,
+  "Athletico Paranaense": 42,
+  Fortaleza: 43,
+  Bahia: 44,
+  "Colo-Colo": 45,
+  "Atlético Bucaramanga": 46,
+  "Atlético Nacional": 47,
+  Olimpia: 48,
+  "The Strongest": 49,
+  Carabobo: 50,
+  "Deportivo Táchira": 51,
+  "San Antonio Bulo Bulo": 52,
 };
 
 const localLogoByName: Record<string, string> = {
-  'Palmeiras': '/logos/palmeiras.png',
-  'Flamengo': '/logos/flamengo.png',
-  'LDU Quito': '/logos/ldu-quito.png',
-  'Racing Club': '/logos/racing-club.png',
-  'Racing': '/logos/racing-club.png',
-  'Estudiantes': '/logos/estudiantes.png',
-  'São Paulo': '/logos/sao-paulo.png',
-  'Vélez Sarsfield': '/logos/velez-sarsfield.png',
-  'River Plate': '/logos/river-plate.png',
-  'Botafogo': '/logos/botafogo.png',
-  'Peñarol': '/logos/penarol.png',
-  'Libertad': '/logos/libertad.png',
-  'Atlético Nacional': '/logos/atletico-nacional.png',
-  'Independiente del Valle': '/logos/independiente-del-valle.png',
-  'Universitário': '/logos/universitario.png',
-  'Internacional': '/logos/internacional.png',
-  'Fortaleza': '/logos/fortaleza.png',
-  'Boca Juniors': '/logos/boca-juniors.png',
-  'Cerro Porteño': '/logos/cerro-porteno.png',
-  'Nacional': '/logos/nacional.png',
-  'Nacional (URU)': '/logos/nacional.png',
-  'Independiente Rivadavia': '/logos/independiente-rivadavia.png',
-  'Bahia': '/logos/bahia.png',
-  'Universidad de Chile': '/logos/universidad-de-chile.png',
-  'Corinthians': '/logos/corinthians.png',
-  'Bolívar': '/logos/bolivar.png',
-  'Rosário Central': '/logos/rosario-central.png',
-  'Colo-Colo': '/logos/colo-colo.png',
-  'Alianza Lima': '/logos/alianza-lima.png',
-  'Olimpia': '/logos/olimpia.png',
-  'Atlético Mineiro': '/logos/atletico-mg.png',
-  'Independiente': '/logos/independiente.png',
-  'Talleres': '/logos/talleres.png',
-  'Barcelona Guayaquil': '/logos/barcelona-sc.png',
-  'Cruzeiro': '/logos/cruzeiro.png',
-  'Argentinos Juniors': '/logos/argentinos-juniors.png',
-  'Lanús': '/logos/lanus.png',
-  'The Strongest': '/logos/the-strongest.png',
-  'Sporting Cristal': '/logos/sporting-cristal.png',
-  'Atlético PR': '/logos/athletico-pr.png',
-  'Coquimbo Unido': '/logos/coquimbo-unido.png',
-  'Grêmio': '/logos/gremio.png',
-  'Mirassol': '/logos/mirassol.png',
-  'Universidad Católica': '/logos/universidad-catolica.png',
-  'Fluminense': '/logos/fluminense.png',
-  'Vitória': '/logos/vitoria.png',
-  'San Lorenzo': '/logos/san-lorenzo.png',
-  'Carabobo': '/logos/carabobo.png',
-  'Huracán': '/logos/huracan.png',
-  'Deportivo Táchira': '/logos/deportivo-tachira.png',
-  'Platense': '/logos/platense.png',
-  'Cuiabá': '/logos/cuiaba.png',
-  'Tolima': '/logos/tolima.png',
-  'Cusco': '/logos/cusco.png',
-  'Independiente Medellín': '/logos/independiente-medellin.png',
-  'Deportivo La Guaira': '/logos/deportivo-la-guaira.png',
-  'Santa Fe': '/logos/santa-fe.png',
-  'Junior Barranquilla': '/logos/junior.png',
-  'Junior': '/logos/junior.png',
-  'Always Ready': '/logos/always-ready.png',
-  'Universidad Central': '/logos/universidad-central.png',
-  'Central Córdoba': '/logos/central-cordoba.png',
-  'Atlético Bucaramanga': '/logos/atletico-bucaramanga.png',
-  'San Antonio Bulo Bulo': '/logos/san-antonio-bulo-bulo.png',
+  Palmeiras: "/logos/palmeiras.png",
+  Flamengo: "/logos/flamengo.png",
+  "LDU Quito": "/logos/ldu-quito.png",
+  "Racing Club": "/logos/racing-club.png",
+  Racing: "/logos/racing-club.png",
+  Estudiantes: "/logos/estudiantes.png",
+  "São Paulo": "/logos/sao-paulo.png",
+  "Vélez Sarsfield": "/logos/velez-sarsfield.png",
+  "River Plate": "/logos/river-plate.png",
+  Botafogo: "/logos/botafogo.png",
+  Peñarol: "/logos/penarol.png",
+  Libertad: "/logos/libertad.png",
+  "Atlético Nacional": "/logos/atletico-nacional.png",
+  "Independiente del Valle": "/logos/independiente-del-valle.png",
+  Universitário: "/logos/universitario.png",
+  Internacional: "/logos/internacional.png",
+  Fortaleza: "/logos/fortaleza.png",
+  "Boca Juniors": "/logos/boca-juniors.png",
+  "Cerro Porteño": "/logos/cerro-porteno.png",
+  Nacional: "/logos/nacional.png",
+  "Nacional (URU)": "/logos/nacional.png",
+  "Independiente Rivadavia": "/logos/independiente-rivadavia.png",
+  Bahia: "/logos/bahia.png",
+  "Universidad de Chile": "/logos/universidad-de-chile.png",
+  Corinthians: "/logos/corinthians.png",
+  Bolívar: "/logos/bolivar.png",
+  "Rosário Central": "/logos/rosario-central.png",
+  "Colo-Colo": "/logos/colo-colo.png",
+  "Alianza Lima": "/logos/alianza-lima.png",
+  Olimpia: "/logos/olimpia.png",
+  "Atlético Mineiro": "/logos/atletico-mg.png",
+  Independiente: "/logos/independiente.png",
+  Talleres: "/logos/talleres.png",
+  "Barcelona Guayaquil": "/logos/barcelona-sc.png",
+  Cruzeiro: "/logos/cruzeiro.png",
+  "Argentinos Juniors": "/logos/argentinos-juniors.png",
+  Lanús: "/logos/lanus.png",
+  "The Strongest": "/logos/the-strongest.png",
+  "Sporting Cristal": "/logos/sporting-cristal.png",
+  "Atlético PR": "/logos/athletico-pr.png",
+  "Coquimbo Unido": "/logos/coquimbo-unido.png",
+  Grêmio: "/logos/gremio.png",
+  Mirassol: "/logos/mirassol.png",
+  "Universidad Católica": "/logos/universidad-catolica.png",
+  Fluminense: "/logos/fluminense.png",
+  Vitória: "/logos/vitoria.png",
+  "San Lorenzo": "/logos/san-lorenzo.png",
+  Carabobo: "/logos/carabobo.png",
+  Huracán: "/logos/huracan.png",
+  "Deportivo Táchira": "/logos/deportivo-tachira.png",
+  Platense: "/logos/platense.png",
+  Cuiabá: "/logos/cuiaba.png",
+  Tolima: "/logos/tolima.png",
+  Cusco: "/logos/cusco.png",
+  "Independiente Medellín": "/logos/independiente-medellin.png",
+  "Deportivo La Guaira": "/logos/deportivo-la-guaira.png",
+  "Santa Fe": "/logos/santa-fe.png",
+  "Junior Barranquilla": "/logos/junior.png",
+  Junior: "/logos/junior.png",
+  "Always Ready": "/logos/always-ready.png",
+  "Universidad Central": "/logos/universidad-central.png",
+  "Central Córdoba": "/logos/central-cordoba.png",
+  "Atlético Bucaramanga": "/logos/atletico-bucaramanga.png",
+  "San Antonio Bulo Bulo": "/logos/san-antonio-bulo-bulo.png",
 };
 
 const teamCountryByName: Record<string, { code: string; country: string }> = {
   // BRASIL
-  'Flamengo': { code: 'br', country: 'Brasil' },
-  'Palmeiras': { code: 'br', country: 'Brasil' },
-  'São Paulo': { code: 'br', country: 'Brasil' },
-  'Sao Paulo': { code: 'br', country: 'Brasil' },
-  'Botafogo': { code: 'br', country: 'Brasil' },
-  'Fortaleza': { code: 'br', country: 'Brasil' },
-  'Internacional': { code: 'br', country: 'Brasil' },
-  'Fluminense': { code: 'br', country: 'Brasil' },
-  'Cruzeiro': { code: 'br', country: 'Brasil' },
-  'Corinthians': { code: 'br', country: 'Brasil' },
-  'Atlético Mineiro': { code: 'br', country: 'Brasil' },
-  'Atletico Mineiro': { code: 'br', country: 'Brasil' },
-  'Grêmio': { code: 'br', country: 'Brasil' },
-  'Gremio': { code: 'br', country: 'Brasil' },
-  'Bahia': { code: 'br', country: 'Brasil' },
-  'Athletico-PR': { code: 'br', country: 'Brasil' },
+  Flamengo: { code: "br", country: "Brasil" },
+  Palmeiras: { code: "br", country: "Brasil" },
+  "São Paulo": { code: "br", country: "Brasil" },
+  "Sao Paulo": { code: "br", country: "Brasil" },
+  Botafogo: { code: "br", country: "Brasil" },
+  Fortaleza: { code: "br", country: "Brasil" },
+  Internacional: { code: "br", country: "Brasil" },
+  Fluminense: { code: "br", country: "Brasil" },
+  Cruzeiro: { code: "br", country: "Brasil" },
+  Corinthians: { code: "br", country: "Brasil" },
+  "Atlético Mineiro": { code: "br", country: "Brasil" },
+  "Atletico Mineiro": { code: "br", country: "Brasil" },
+  Grêmio: { code: "br", country: "Brasil" },
+  Gremio: { code: "br", country: "Brasil" },
+  Bahia: { code: "br", country: "Brasil" },
+  "Athletico-PR": { code: "br", country: "Brasil" },
 
   // ARGENTINA
-  'Central Córdoba': { code: 'ar', country: 'Argentina' },
-  'River Plate': { code: 'ar', country: 'Argentina' },
-  'Racing Club': { code: 'ar', country: 'Argentina' },
-  'Racing': { code: 'ar', country: 'Argentina' },
-  'Boca Juniors': { code: 'ar', country: 'Argentina' },
-  'Estudiantes': { code: 'ar', country: 'Argentina' },
-  'Vélez Sarsfield': { code: 'ar', country: 'Argentina' },
-  'Velez Sarsfield': { code: 'ar', country: 'Argentina' },
-  'San Lorenzo': { code: 'ar', country: 'Argentina' },
-  'Lanús': { code: 'ar', country: 'Argentina' },
-  'Lanus': { code: 'ar', country: 'Argentina' },
-  'Talleres': { code: 'ar', country: 'Argentina' },
+  "Central Córdoba": { code: "ar", country: "Argentina" },
+  "River Plate": { code: "ar", country: "Argentina" },
+  "Racing Club": { code: "ar", country: "Argentina" },
+  Racing: { code: "ar", country: "Argentina" },
+  "Boca Juniors": { code: "ar", country: "Argentina" },
+  Estudiantes: { code: "ar", country: "Argentina" },
+  "Vélez Sarsfield": { code: "ar", country: "Argentina" },
+  "Velez Sarsfield": { code: "ar", country: "Argentina" },
+  "San Lorenzo": { code: "ar", country: "Argentina" },
+  Lanús: { code: "ar", country: "Argentina" },
+  Lanus: { code: "ar", country: "Argentina" },
+  Talleres: { code: "ar", country: "Argentina" },
 
   // URUGUAI
-  'Peñarol': { code: 'uy', country: 'Uruguai' },
-  'Penarol': { code: 'uy', country: 'Uruguai' },
-  'Nacional': { code: 'uy', country: 'Uruguai' },
+  Peñarol: { code: "uy", country: "Uruguai" },
+  Penarol: { code: "uy", country: "Uruguai" },
+  Nacional: { code: "uy", country: "Uruguai" },
 
   // EQUADOR
-  'LDU Quito': { code: 'ec', country: 'Equador' },
-  'LDU': { code: 'ec', country: 'Equador' },
-  'Independiente del Valle': { code: 'ec', country: 'Equador' },
-  'Barcelona': { code: 'ec', country: 'Equador' },
+  "LDU Quito": { code: "ec", country: "Equador" },
+  LDU: { code: "ec", country: "Equador" },
+  "Independiente del Valle": { code: "ec", country: "Equador" },
+  Barcelona: { code: "ec", country: "Equador" },
 
   // PARAGUAI
-  'Libertad': { code: 'py', country: 'Paraguai' },
-  'Cerro Porteño': { code: 'py', country: 'Paraguai' },
-  'Olimpia': { code: 'py', country: 'Paraguai' },
+  Libertad: { code: "py", country: "Paraguai" },
+  "Cerro Porteño": { code: "py", country: "Paraguai" },
+  Olimpia: { code: "py", country: "Paraguai" },
 
   // PERU
-  'Universitario': { code: 'pe', country: 'Peru' },
-  'Universitário': { code: 'pe', country: 'Peru' },
-  'Sporting Cristal': { code: 'pe', country: 'Peru' },
+  Universitario: { code: "pe", country: "Peru" },
+  Universitário: { code: "pe", country: "Peru" },
+  "Sporting Cristal": { code: "pe", country: "Peru" },
 
   // COLÔMBIA
-  'Atlético Nacional': { code: 'co', country: 'Colômbia' },
-  'Atletico Nacional': { code: 'co', country: 'Colômbia' },
+  "Atlético Nacional": { code: "co", country: "Colômbia" },
+  "Atletico Nacional": { code: "co", country: "Colômbia" },
 
   // BOLÍVIA
-  'Bolívar': { code: 'bo', country: 'Bolívia' },
-  'Bolivar': { code: 'bo', country: 'Bolívia' },
+  Bolívar: { code: "bo", country: "Bolívia" },
+  Bolivar: { code: "bo", country: "Bolívia" },
 
   // CHILE
-  'Colo-Colo': { code: 'cl', country: 'Chile' },
-  'Universidad de Chile': { code: 'cl', country: 'Chile' },
-  'Universidad Católica': { code: 'cl', country: 'Chile' },
-  'Coquimbo Unido': { code: 'cl', country: 'Chile' },
+  "Colo-Colo": { code: "cl", country: "Chile" },
+  "Universidad de Chile": { code: "cl", country: "Chile" },
+  "Universidad Católica": { code: "cl", country: "Chile" },
+  "Coquimbo Unido": { code: "cl", country: "Chile" },
 
   // VENEZUELA
-  'Deportivo Táchira': { code: 've', country: 'Venezuela' },
-  'Carabobo': { code: 've', country: 'Venezuela' },
+  "Deportivo Táchira": { code: "ve", country: "Venezuela" },
+  Carabobo: { code: "ve", country: "Venezuela" },
 };
 
 const countryCodeByCountryName: Record<string, string> = {
-  'brasil': 'br',
-  'brazil': 'br',
-  'argentina': 'ar',
-  'uruguai': 'uy',
-  'uruguay': 'uy',
-  'equador': 'ec',
-  'ecuador': 'ec',
-  'paraguai': 'py',
-  'paraguay': 'py',
-  'peru': 'pe',
-  'colômbia': 'co',
-  'colombia': 'co',
-  'colombia': 'co',
-  'bolívia': 'bo',
-  'bolivia': 'bo',
-  'chile': 'cl',
-  'venezuela': 've',
+  brasil: "br",
+  brazil: "br",
+  argentina: "ar",
+  uruguai: "uy",
+  uruguay: "uy",
+  equador: "ec",
+  ecuador: "ec",
+  paraguai: "py",
+  paraguay: "py",
+  peru: "pe",
+  colômbia: "co",
+  colombia: "co",
+  colombia: "co",
+  bolívia: "bo",
+  bolivia: "bo",
+  chile: "cl",
+  venezuela: "ve",
 };
 
 function normalizeCountryCode(value?: string | null) {
@@ -287,8 +287,8 @@ function normalizeCountryCode(value?: string | null) {
   }
 
   const normalizedCountry = cleanValue
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase();
 
   return countryCodeByCountryName[normalizedCountry] || null;
@@ -320,51 +320,53 @@ function getBackendTeamCountry(team: any) {
   };
 }
 
-
-function getTeamCountryLabel(teamName: string, backendCountry?: { code: string; country: string } | null) {
+function getTeamCountryLabel(
+  teamName: string,
+  backendCountry?: { code: string; country: string } | null,
+) {
   if (backendCountry) return backendCountry;
 
   const normalizedName = normalizeTeamName(teamName);
 
   return (
     teamCountryByName[normalizedName] ||
-    teamCountryByName[teamName] ||
-    { code: 'un', country: 'CONMEBOL' }
+    teamCountryByName[teamName] || { code: "un", country: "CONMEBOL" }
   );
 }
-
 
 function ClubBadge({
   clubName,
   teamId,
-  size = 'md',
+  size = "md",
 }: {
   clubName: string;
   teamId?: number | null;
-  size?: 'sm' | 'md' | 'lg';
+  size?: "sm" | "md" | "lg";
 }) {
   const normalizedName = normalizeTeamName(clubName);
 
   const escudoUrl =
     getTeamLogoById(teamId) ||
     localLogoByName[normalizedName] ||
-    '/logos/default.png';
+    "/logos/default.png";
 
   const sizeClasses = {
-    sm: 'w-7 h-7',
-    md: 'w-10 h-10',
-    lg: 'w-12 h-12',
+    sm: "w-7 h-7",
+    md: "w-10 h-10",
+    lg: "w-12 h-12",
   };
 
   return (
-    <div className={`${sizeClasses[size]} rounded-lg shadow-sm border border-border flex items-center justify-center overflow-hidden bg-white dark:bg-slate-800 transition-colors`}>
+    <div
+      className={`${sizeClasses[size]} rounded-lg shadow-sm border border-border flex items-center justify-center overflow-hidden bg-white dark:bg-slate-800 transition-colors`}
+    >
       <img
         src={escudoUrl}
         alt={normalizedName}
         className="w-full h-full object-contain p-1"
         onError={(e) => {
           e.currentTarget.onerror = null;
-          e.currentTarget.src = '/logos/default.png';
+          e.currentTarget.src = "/logos/default.png";
         }}
       />
     </div>
@@ -377,7 +379,7 @@ function makeDisplayMatch(
   team2: string,
   agg: string,
   winner: string,
-  penalties?: string
+  penalties?: string,
 ): KnockoutMatch {
   return {
     ...base,
@@ -403,7 +405,8 @@ function BracketTeamRow({
   onHoverTeam?: (teamName: string | null) => void;
 }) {
   const normalizedName = normalizeTeamName(name);
-  const teamId = fallbackTeamIdByName[normalizedName] || fallbackTeamIdByName[name];
+  const teamId =
+    fallbackTeamIdByName[normalizedName] || fallbackTeamIdByName[name];
   const isChampion = normalizedName === championTeam;
   const isEliminated = !winner;
   const isHoveredTeam = hoveredTeam === normalizedName;
@@ -414,24 +417,24 @@ function BracketTeamRow({
       onMouseLeave={() => onHoverTeam?.(null)}
       className={`bracket-team-row flex items-center justify-between gap-2 rounded-lg px-2 py-1.5 border transition-all duration-300 ${
         winner
-          ? 'bg-slate-900 border-slate-500 text-white hover:border-slate-300'
-          : 'bg-slate-900/70 border-slate-700 text-slate-300'
+          ? "bg-slate-900 border-slate-500 text-white hover:border-slate-300"
+          : "bg-slate-900/70 border-slate-700 text-slate-300"
       } ${
         isEliminated
-          ? 'hover:border-red-500 hover:shadow-[0_0_16px_rgba(239,68,68,0.65)] hover:text-red-100'
-          : ''
+          ? "hover:border-red-500 hover:shadow-[0_0_16px_rgba(239,68,68,0.65)] hover:text-red-100"
+          : ""
       } ${
         isChampion
-          ? 'border-green-500/80 hover:border-green-300 hover:shadow-[0_0_18px_rgba(34,197,94,0.75)]'
-          : ''
+          ? "border-green-500/80 hover:border-green-300 hover:shadow-[0_0_18px_rgba(34,197,94,0.75)]"
+          : ""
       } ${
         isHoveredTeam && winner
-          ? 'border-green-300 shadow-[0_0_18px_rgba(34,197,94,0.75)]'
-          : ''
+          ? "border-green-300 shadow-[0_0_18px_rgba(34,197,94,0.75)]"
+          : ""
       } ${
         isHoveredTeam && isEliminated
-          ? 'border-red-400 text-red-100 shadow-[0_0_18px_rgba(239,68,68,0.78)]'
-          : ''
+          ? "border-red-400 text-red-100 shadow-[0_0_18px_rgba(239,68,68,0.78)]"
+          : ""
       }`}
     >
       <div className="flex items-center gap-2 min-w-0">
@@ -442,9 +445,7 @@ function BracketTeamRow({
       </div>
 
       {winner && (
-        <span className="text-green-400 text-[10px] font-black">
-          ✓
-        </span>
+        <span className="text-green-400 text-[10px] font-black">✓</span>
       )}
     </div>
   );
@@ -467,8 +468,20 @@ function BracketMatch({
   return (
     <div className="relative w-[150px] bracket-match">
       <div className="space-y-1.5">
-        <BracketTeamRow name={match.team1} winner={isWinner1} championTeam={championTeam} hoveredTeam={hoveredTeam} onHoverTeam={onHoverTeam} />
-        <BracketTeamRow name={match.team2} winner={isWinner2} championTeam={championTeam} hoveredTeam={hoveredTeam} onHoverTeam={onHoverTeam} />
+        <BracketTeamRow
+          name={match.team1}
+          winner={isWinner1}
+          championTeam={championTeam}
+          hoveredTeam={hoveredTeam}
+          onHoverTeam={onHoverTeam}
+        />
+        <BracketTeamRow
+          name={match.team2}
+          winner={isWinner2}
+          championTeam={championTeam}
+          hoveredTeam={hoveredTeam}
+          onHoverTeam={onHoverTeam}
+        />
 
         <div className="text-center text-[8px] font-black text-slate-400 pt-0.5">
           AGG: {match.agg}
@@ -494,18 +507,12 @@ function SvgConnector({
   isEliminated?: boolean;
 }) {
   const pathClass = isHighlighted
-    ? 'highlighted-path'
+    ? "highlighted-path"
     : isEliminated
-      ? 'eliminated-path'
-      : 'bracket-path';
+      ? "eliminated-path"
+      : "bracket-path";
 
-  return (
-    <path
-      d={d}
-      pathLength={1}
-      className={pathClass}
-    />
-  );
+  return <path d={d} pathLength={1} className={pathClass} />;
 }
 
 function Bracket2025() {
@@ -514,22 +521,40 @@ function Bracket2025() {
 
   const leftRound16: KnockoutMatch[] = [
     oitavas2025[0],
-    makeDisplayMatch(oitavas2025[7], 'LDU Quito', 'Botafogo', '2–1', 'LDU Quito'),
+    makeDisplayMatch(
+      oitavas2025[7],
+      "LDU Quito",
+      "Botafogo",
+      "2–1",
+      "LDU Quito",
+    ),
     oitavas2025[4],
     oitavas2025[3],
   ];
 
   const leftQuarters: KnockoutMatch[] = [
-    makeDisplayMatch(quartas2025[0], 'São Paulo', 'LDU Quito', '0–3', 'LDU Quito'),
-    makeDisplayMatch(quartas2025[3], 'River Plate', 'Palmeiras', '2–5', 'Palmeiras'),
+    makeDisplayMatch(
+      quartas2025[0],
+      "São Paulo",
+      "LDU Quito",
+      "0–3",
+      "LDU Quito",
+    ),
+    makeDisplayMatch(
+      quartas2025[3],
+      "River Plate",
+      "Palmeiras",
+      "2–5",
+      "Palmeiras",
+    ),
   ];
 
   const leftSemi: KnockoutMatch = makeDisplayMatch(
     semis2025[0],
-    'LDU Quito',
-    'Palmeiras',
-    '3–4',
-    'Palmeiras'
+    "LDU Quito",
+    "Palmeiras",
+    "3–4",
+    "Palmeiras",
   );
 
   const rightRound16: KnockoutMatch[] = [
@@ -541,23 +566,30 @@ function Bracket2025() {
 
   const rightQuarters: KnockoutMatch[] = [
     quartas2025[1],
-    makeDisplayMatch(quartas2025[2], 'Estudiantes', 'Flamengo', '2–2', 'Flamengo', '2–4'),
+    makeDisplayMatch(
+      quartas2025[2],
+      "Estudiantes",
+      "Flamengo",
+      "2–2",
+      "Flamengo",
+      "2–4",
+    ),
   ];
 
   const rightSemi: KnockoutMatch = makeDisplayMatch(
     semis2025[1],
-    'Racing',
-    'Flamengo',
-    '0–1',
-    'Flamengo'
+    "Racing",
+    "Flamengo",
+    "0–1",
+    "Flamengo",
   );
 
   const finalMatch: KnockoutMatch = makeDisplayMatch(
     final2025,
-    'Palmeiras',
-    'Flamengo',
-    '0–1',
-    'Flamengo'
+    "Palmeiras",
+    "Flamengo",
+    "0–1",
+    "Flamengo",
   );
 
   const matchWidth = 150;
@@ -605,31 +637,57 @@ function Bracket2025() {
     rightR16: y.r16.map((value) => value + matchCenterY),
   };
 
-  const leftBracket = (fromA: number, fromB: number, to: number, fromX: number, toX: number) => {
+  const leftBracket = (
+    fromA: number,
+    fromB: number,
+    to: number,
+    fromX: number,
+    toX: number,
+  ) => {
     const midX = fromX + (toX - fromX) / 2;
     return `M ${fromX} ${fromA} H ${midX} V ${to} H ${toX} M ${fromX} ${fromB} H ${midX} V ${to}`;
   };
 
-  const rightBracket = (fromA: number, fromB: number, to: number, fromX: number, toX: number) => {
+  const rightBracket = (
+    fromA: number,
+    fromB: number,
+    to: number,
+    fromX: number,
+    toX: number,
+  ) => {
     const midX = fromX + (toX - fromX) / 2;
     return `M ${fromX} ${fromA} H ${midX} V ${to} H ${toX} M ${fromX} ${fromB} H ${midX} V ${to}`;
   };
 
-  const simple = (fromX: number, fromY: number, toX: number) => `M ${fromX} ${fromY} H ${toX}`;
+  const simple = (fromX: number, fromY: number, toX: number) =>
+    `M ${fromX} ${fromY} H ${toX}`;
 
-  const leftSingleBracket = (fromY: number, toY: number, fromX: number, toX: number) => {
+  const leftSingleBracket = (
+    fromY: number,
+    toY: number,
+    fromX: number,
+    toX: number,
+  ) => {
     const midX = fromX + (toX - fromX) / 2;
     return `M ${fromX} ${fromY} H ${midX} V ${toY} H ${toX}`;
   };
 
-  const rightSingleBracket = (fromY: number, toY: number, fromX: number, toX: number) => {
+  const rightSingleBracket = (
+    fromY: number,
+    toY: number,
+    fromX: number,
+    toX: number,
+  ) => {
     const midX = fromX + (toX - fromX) / 2;
     return `M ${fromX} ${fromY} H ${midX} V ${toY} H ${toX}`;
   };
 
   const includesTeam = (match: KnockoutMatch, team: string | null) => {
     if (!team) return false;
-    return normalizeTeamName(match.team1) === team || normalizeTeamName(match.team2) === team;
+    return (
+      normalizeTeamName(match.team1) === team ||
+      normalizeTeamName(match.team2) === team
+    );
   };
 
   const winnerIsTeam = (match: KnockoutMatch, team: string | null) => {
@@ -643,7 +701,10 @@ function Bracket2025() {
   const eliminatedInMatch = (match: KnockoutMatch) =>
     includesTeam(match, hoveredTeam) && !winnerIsTeam(match, hoveredTeam);
 
-  const highlightChampionToFinal = (semi: KnockoutMatch, finalMatchData: KnockoutMatch) => {
+  const highlightChampionToFinal = (
+    semi: KnockoutMatch,
+    finalMatchData: KnockoutMatch,
+  ) => {
     if (!hoveredTeam) return false;
 
     return (
@@ -652,7 +713,10 @@ function Bracket2025() {
     );
   };
 
-  const highlightEliminatedAtFinal = (semi: KnockoutMatch, finalMatchData: KnockoutMatch) => {
+  const highlightEliminatedAtFinal = (
+    semi: KnockoutMatch,
+    finalMatchData: KnockoutMatch,
+  ) => {
     if (!hoveredTeam) return false;
 
     return (
@@ -730,134 +794,377 @@ function Bracket2025() {
         `}
       </style>
 
-      <div className="bracket-board relative min-w-[1260px] h-[780px] rounded-3xl bg-slate-950 p-7 border border-border overflow-hidden">
+      <div className="bracket-board relative w-full min-w-[1320px] h-[780px] rounded-3xl bg-slate-950 p-7 border border-border overflow-hidden">
         <div className="absolute inset-0 opacity-[0.04] bg-[radial-gradient(circle_at_center,_white_1px,_transparent_1px)] [background-size:24px_24px]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(30,64,175,0.20),_transparent_55%)]" />
 
-        <div className="relative z-10 h-6 text-white text-xs font-black">
-          <div className="absolute w-[150px] text-center" style={{ left: x.leftR16 }}>
-            Oitavas de final
-          </div>
-
-          <div className="absolute w-[150px] text-center" style={{ left: x.leftQF }}>
-            Quartas de final
-          </div>
-
-          <div className="absolute w-[150px] text-center" style={{ left: x.leftSF }}>
-            Semifinal
-          </div>
-
-          <div className="absolute w-[150px] text-center" style={{ left: x.final }}>
-            Final
-          </div>
-
-          <div className="absolute w-[150px] text-center" style={{ left: x.rightSF }}>
-            Semifinal
-          </div>
-
-          <div className="absolute w-[150px] text-center" style={{ left: x.rightQF }}>
-            Quartas de final
-          </div>
-
-          <div className="absolute w-[150px] text-center" style={{ left: x.rightR16 }}>
-            Oitavas de final
-          </div>
-        </div>
-
-        <div className="relative z-10 h-[690px] mt-8">
-          <svg
-            className="pointer-events-none absolute inset-0 z-0"
-            width="1260"
-            height="690"
-            viewBox="0 0 1260 690"
-            aria-hidden="true"
-          >
-            {/* Caminhos neutros completos */}
-            <SvgConnector d={leftBracket(cy.leftR16[0], cy.leftR16[1], cy.leftQF[0], cx.leftR16Out, cx.leftQFIn)} />
-            <SvgConnector d={leftBracket(cy.leftR16[2], cy.leftR16[3], cy.leftQF[1], cx.leftR16Out, cx.leftQFIn)} />
-            <SvgConnector d={leftBracket(cy.leftQF[0], cy.leftQF[1], cy.leftSF, cx.leftQFOut, cx.leftSFIn)} />
-            <SvgConnector d={simple(cx.leftSFOut, cy.leftSF, cx.finalInLeft)} />
-
-            <SvgConnector d={rightBracket(cy.rightR16[0], cy.rightR16[1], cy.rightQF[0], cx.rightR16Out, cx.rightQFIn)} />
-            <SvgConnector d={rightBracket(cy.rightR16[2], cy.rightR16[3], cy.rightQF[1], cx.rightR16Out, cx.rightQFIn)} />
-            <SvgConnector d={rightBracket(cy.rightQF[0], cy.rightQF[1], cy.rightSF, cx.rightQFOut, cx.rightSFIn)} />
-            <SvgConnector d={simple(cx.rightSFOut, cy.rightSF, cx.finalInRight)} />
-
-            {/* Destaques individuais: só o ramo exato do time fica colorido */}
-            <SvgConnector d={leftSingleBracket(cy.leftR16[0], cy.leftQF[0], cx.leftR16Out, cx.leftQFIn)} isHighlighted={highlightFromMatch(leftRound16[0])} />
-            <SvgConnector d={leftSingleBracket(cy.leftR16[1], cy.leftQF[0], cx.leftR16Out, cx.leftQFIn)} isHighlighted={highlightFromMatch(leftRound16[1])} />
-            <SvgConnector d={leftSingleBracket(cy.leftR16[2], cy.leftQF[1], cx.leftR16Out, cx.leftQFIn)} isHighlighted={highlightFromMatch(leftRound16[2])} />
-            <SvgConnector d={leftSingleBracket(cy.leftR16[3], cy.leftQF[1], cx.leftR16Out, cx.leftQFIn)} isHighlighted={highlightFromMatch(leftRound16[3])} />
-
-            <SvgConnector d={leftSingleBracket(cy.leftQF[0], cy.leftSF, cx.leftQFOut, cx.leftSFIn)} isHighlighted={highlightFromMatch(leftQuarters[0])} />
-            <SvgConnector d={leftSingleBracket(cy.leftQF[1], cy.leftSF, cx.leftQFOut, cx.leftSFIn)} isHighlighted={highlightFromMatch(leftQuarters[1])} />
-            <SvgConnector d={simple(cx.leftSFOut, cy.leftSF, cx.finalInLeft)} isHighlighted={highlightChampionToFinal(leftSemi, finalMatch)} isEliminated={highlightEliminatedAtFinal(leftSemi, finalMatch)} />
-
-            <SvgConnector d={rightSingleBracket(cy.rightR16[0], cy.rightQF[0], cx.rightR16Out, cx.rightQFIn)} isHighlighted={highlightFromMatch(rightRound16[0])} />
-            <SvgConnector d={rightSingleBracket(cy.rightR16[1], cy.rightQF[0], cx.rightR16Out, cx.rightQFIn)} isHighlighted={highlightFromMatch(rightRound16[1])} />
-            <SvgConnector d={rightSingleBracket(cy.rightR16[2], cy.rightQF[1], cx.rightR16Out, cx.rightQFIn)} isHighlighted={highlightFromMatch(rightRound16[2])} />
-            <SvgConnector d={rightSingleBracket(cy.rightR16[3], cy.rightQF[1], cx.rightR16Out, cx.rightQFIn)} isHighlighted={highlightFromMatch(rightRound16[3])} />
-
-            <SvgConnector d={rightSingleBracket(cy.rightQF[0], cy.rightSF, cx.rightQFOut, cx.rightSFIn)} isHighlighted={highlightFromMatch(rightQuarters[0])} />
-            <SvgConnector d={rightSingleBracket(cy.rightQF[1], cy.rightSF, cx.rightQFOut, cx.rightSFIn)} isHighlighted={highlightFromMatch(rightQuarters[1])} />
-            <SvgConnector d={simple(cx.rightSFOut, cy.rightSF, cx.finalInRight)} isHighlighted={highlightChampionToFinal(rightSemi, finalMatch)} isEliminated={highlightEliminatedAtFinal(rightSemi, finalMatch)} />
-          </svg>
-
-          {leftRound16.map((match, index) => (
-            <div key={`lr16-${index}`} className="absolute z-10" style={{ left: x.leftR16, top: y.r16[index] }}>
-              <BracketMatch match={match} championTeam={championTeam} hoveredTeam={hoveredTeam} onHoverTeam={setHoveredTeam} />
-            </div>
-          ))}
-
-          {leftQuarters.map((match, index) => (
-            <div key={`lqf-${index}`} className="absolute z-10" style={{ left: x.leftQF, top: y.qf[index] }}>
-              <BracketMatch match={match} championTeam={championTeam} hoveredTeam={hoveredTeam} onHoverTeam={setHoveredTeam} />
-            </div>
-          ))}
-
-          <div className="absolute z-10" style={{ left: x.leftSF, top: y.sf }}>
-            <BracketMatch match={leftSemi} championTeam={championTeam} hoveredTeam={hoveredTeam} onHoverTeam={setHoveredTeam} />
-          </div>
-
-          <div className="absolute z-10 text-center" style={{ left: x.final, top: y.final }}>
-            <div className={`rounded-2xl bg-slate-900/90 p-3 transition-all duration-300 ${
-              hoveredTeam === championTeam
-                ? 'border border-green-400 shadow-[0_0_28px_rgba(34,197,94,0.45)]'
-                : hoveredTeam && includesTeam(finalMatch, hoveredTeam) && !winnerIsTeam(finalMatch, hoveredTeam)
-                  ? 'border border-red-400 shadow-[0_0_28px_rgba(239,68,68,0.38)]'
-                  : 'border border-slate-600/80 shadow-[0_0_24px_rgba(15,23,42,0.35)]'
-            }`}>
-              <BracketMatch match={finalMatch} championTeam={championTeam} hoveredTeam={hoveredTeam} onHoverTeam={setHoveredTeam} />
+        <div className="relative z-10 mx-auto h-full w-[1260px]">
+          <div className="relative h-6 text-white text-xs font-black">
+            <div
+              className="absolute w-[150px] text-center"
+              style={{ left: x.leftR16 }}
+            >
+              Oitavas de final
             </div>
 
             <div
-              onMouseEnter={() => setHoveredTeam(championTeam)}
-              onMouseLeave={() => setHoveredTeam(null)}
-              className={`mt-3 inline-flex rounded-lg px-4 py-1 text-[11px] font-black text-black cursor-default transition-all ${
-                hoveredTeam === championTeam
-                  ? 'bg-green-400 shadow-[0_0_22px_rgba(34,197,94,0.9)]'
-                  : 'bg-green-500 hover:shadow-[0_0_20px_rgba(34,197,94,0.8)]'
-              }`}
+              className="absolute w-[150px] text-center"
+              style={{ left: x.leftQF }}
             >
-              {championTeam} campeão
+              Quartas de final
+            </div>
+
+            <div
+              className="absolute w-[150px] text-center"
+              style={{ left: x.leftSF }}
+            >
+              Semifinal
+            </div>
+
+            <div
+              className="absolute w-[150px] text-center"
+              style={{ left: x.final }}
+            >
+              Final
+            </div>
+
+            <div
+              className="absolute w-[150px] text-center"
+              style={{ left: x.rightSF }}
+            >
+              Semifinal
+            </div>
+
+            <div
+              className="absolute w-[150px] text-center"
+              style={{ left: x.rightQF }}
+            >
+              Quartas de final
+            </div>
+
+            <div
+              className="absolute w-[150px] text-center"
+              style={{ left: x.rightR16 }}
+            >
+              Oitavas de final
             </div>
           </div>
 
-          <div className="absolute z-10" style={{ left: x.rightSF, top: y.sf }}>
-            <BracketMatch match={rightSemi} championTeam={championTeam} hoveredTeam={hoveredTeam} onHoverTeam={setHoveredTeam} />
+          <div className="relative z-10 h-[690px] mt-8">
+            <svg
+              className="pointer-events-none absolute inset-0 z-0"
+              width="1260"
+              height="690"
+              viewBox="0 0 1260 690"
+              aria-hidden="true"
+            >
+              {/* Caminhos neutros completos */}
+              <SvgConnector
+                d={leftBracket(
+                  cy.leftR16[0],
+                  cy.leftR16[1],
+                  cy.leftQF[0],
+                  cx.leftR16Out,
+                  cx.leftQFIn,
+                )}
+              />
+              <SvgConnector
+                d={leftBracket(
+                  cy.leftR16[2],
+                  cy.leftR16[3],
+                  cy.leftQF[1],
+                  cx.leftR16Out,
+                  cx.leftQFIn,
+                )}
+              />
+              <SvgConnector
+                d={leftBracket(
+                  cy.leftQF[0],
+                  cy.leftQF[1],
+                  cy.leftSF,
+                  cx.leftQFOut,
+                  cx.leftSFIn,
+                )}
+              />
+              <SvgConnector
+                d={simple(cx.leftSFOut, cy.leftSF, cx.finalInLeft)}
+              />
+
+              <SvgConnector
+                d={rightBracket(
+                  cy.rightR16[0],
+                  cy.rightR16[1],
+                  cy.rightQF[0],
+                  cx.rightR16Out,
+                  cx.rightQFIn,
+                )}
+              />
+              <SvgConnector
+                d={rightBracket(
+                  cy.rightR16[2],
+                  cy.rightR16[3],
+                  cy.rightQF[1],
+                  cx.rightR16Out,
+                  cx.rightQFIn,
+                )}
+              />
+              <SvgConnector
+                d={rightBracket(
+                  cy.rightQF[0],
+                  cy.rightQF[1],
+                  cy.rightSF,
+                  cx.rightQFOut,
+                  cx.rightSFIn,
+                )}
+              />
+              <SvgConnector
+                d={simple(cx.rightSFOut, cy.rightSF, cx.finalInRight)}
+              />
+
+              {/* Destaques individuais: só o ramo exato do time fica colorido */}
+              <SvgConnector
+                d={leftSingleBracket(
+                  cy.leftR16[0],
+                  cy.leftQF[0],
+                  cx.leftR16Out,
+                  cx.leftQFIn,
+                )}
+                isHighlighted={highlightFromMatch(leftRound16[0])}
+              />
+              <SvgConnector
+                d={leftSingleBracket(
+                  cy.leftR16[1],
+                  cy.leftQF[0],
+                  cx.leftR16Out,
+                  cx.leftQFIn,
+                )}
+                isHighlighted={highlightFromMatch(leftRound16[1])}
+              />
+              <SvgConnector
+                d={leftSingleBracket(
+                  cy.leftR16[2],
+                  cy.leftQF[1],
+                  cx.leftR16Out,
+                  cx.leftQFIn,
+                )}
+                isHighlighted={highlightFromMatch(leftRound16[2])}
+              />
+              <SvgConnector
+                d={leftSingleBracket(
+                  cy.leftR16[3],
+                  cy.leftQF[1],
+                  cx.leftR16Out,
+                  cx.leftQFIn,
+                )}
+                isHighlighted={highlightFromMatch(leftRound16[3])}
+              />
+
+              <SvgConnector
+                d={leftSingleBracket(
+                  cy.leftQF[0],
+                  cy.leftSF,
+                  cx.leftQFOut,
+                  cx.leftSFIn,
+                )}
+                isHighlighted={highlightFromMatch(leftQuarters[0])}
+              />
+              <SvgConnector
+                d={leftSingleBracket(
+                  cy.leftQF[1],
+                  cy.leftSF,
+                  cx.leftQFOut,
+                  cx.leftSFIn,
+                )}
+                isHighlighted={highlightFromMatch(leftQuarters[1])}
+              />
+              <SvgConnector
+                d={simple(cx.leftSFOut, cy.leftSF, cx.finalInLeft)}
+                isHighlighted={highlightChampionToFinal(leftSemi, finalMatch)}
+                isEliminated={highlightEliminatedAtFinal(leftSemi, finalMatch)}
+              />
+
+              <SvgConnector
+                d={rightSingleBracket(
+                  cy.rightR16[0],
+                  cy.rightQF[0],
+                  cx.rightR16Out,
+                  cx.rightQFIn,
+                )}
+                isHighlighted={highlightFromMatch(rightRound16[0])}
+              />
+              <SvgConnector
+                d={rightSingleBracket(
+                  cy.rightR16[1],
+                  cy.rightQF[0],
+                  cx.rightR16Out,
+                  cx.rightQFIn,
+                )}
+                isHighlighted={highlightFromMatch(rightRound16[1])}
+              />
+              <SvgConnector
+                d={rightSingleBracket(
+                  cy.rightR16[2],
+                  cy.rightQF[1],
+                  cx.rightR16Out,
+                  cx.rightQFIn,
+                )}
+                isHighlighted={highlightFromMatch(rightRound16[2])}
+              />
+              <SvgConnector
+                d={rightSingleBracket(
+                  cy.rightR16[3],
+                  cy.rightQF[1],
+                  cx.rightR16Out,
+                  cx.rightQFIn,
+                )}
+                isHighlighted={highlightFromMatch(rightRound16[3])}
+              />
+
+              <SvgConnector
+                d={rightSingleBracket(
+                  cy.rightQF[0],
+                  cy.rightSF,
+                  cx.rightQFOut,
+                  cx.rightSFIn,
+                )}
+                isHighlighted={highlightFromMatch(rightQuarters[0])}
+              />
+              <SvgConnector
+                d={rightSingleBracket(
+                  cy.rightQF[1],
+                  cy.rightSF,
+                  cx.rightQFOut,
+                  cx.rightSFIn,
+                )}
+                isHighlighted={highlightFromMatch(rightQuarters[1])}
+              />
+              <SvgConnector
+                d={simple(cx.rightSFOut, cy.rightSF, cx.finalInRight)}
+                isHighlighted={highlightChampionToFinal(rightSemi, finalMatch)}
+                isEliminated={highlightEliminatedAtFinal(rightSemi, finalMatch)}
+              />
+            </svg>
+
+            {leftRound16.map((match, index) => (
+              <div
+                key={`lr16-${index}`}
+                className="absolute z-10"
+                style={{ left: x.leftR16, top: y.r16[index] }}
+              >
+                <BracketMatch
+                  match={match}
+                  championTeam={championTeam}
+                  hoveredTeam={hoveredTeam}
+                  onHoverTeam={setHoveredTeam}
+                />
+              </div>
+            ))}
+
+            {leftQuarters.map((match, index) => (
+              <div
+                key={`lqf-${index}`}
+                className="absolute z-10"
+                style={{ left: x.leftQF, top: y.qf[index] }}
+              >
+                <BracketMatch
+                  match={match}
+                  championTeam={championTeam}
+                  hoveredTeam={hoveredTeam}
+                  onHoverTeam={setHoveredTeam}
+                />
+              </div>
+            ))}
+
+            <div
+              className="absolute z-10"
+              style={{ left: x.leftSF, top: y.sf }}
+            >
+              <BracketMatch
+                match={leftSemi}
+                championTeam={championTeam}
+                hoveredTeam={hoveredTeam}
+                onHoverTeam={setHoveredTeam}
+              />
+            </div>
+
+            <div
+              className="absolute z-10 text-center"
+              style={{ left: x.final, top: y.final }}
+            >
+              <div
+                className={`rounded-2xl bg-slate-900/90 p-3 transition-all duration-300 ${
+                  hoveredTeam === championTeam
+                    ? "border border-green-400 shadow-[0_0_28px_rgba(34,197,94,0.45)]"
+                    : hoveredTeam &&
+                        includesTeam(finalMatch, hoveredTeam) &&
+                        !winnerIsTeam(finalMatch, hoveredTeam)
+                      ? "border border-red-400 shadow-[0_0_28px_rgba(239,68,68,0.38)]"
+                      : "border border-slate-600/80 shadow-[0_0_24px_rgba(15,23,42,0.35)]"
+                }`}
+              >
+                <BracketMatch
+                  match={finalMatch}
+                  championTeam={championTeam}
+                  hoveredTeam={hoveredTeam}
+                  onHoverTeam={setHoveredTeam}
+                />
+              </div>
+
+              <div
+                onMouseEnter={() => setHoveredTeam(championTeam)}
+                onMouseLeave={() => setHoveredTeam(null)}
+                className={`mt-3 inline-flex rounded-lg px-4 py-1 text-[11px] font-black text-black cursor-default transition-all ${
+                  hoveredTeam === championTeam
+                    ? "bg-green-400 shadow-[0_0_22px_rgba(34,197,94,0.9)]"
+                    : "bg-green-500 hover:shadow-[0_0_20px_rgba(34,197,94,0.8)]"
+                }`}
+              >
+                {championTeam} campeão
+              </div>
+            </div>
+
+            <div
+              className="absolute z-10"
+              style={{ left: x.rightSF, top: y.sf }}
+            >
+              <BracketMatch
+                match={rightSemi}
+                championTeam={championTeam}
+                hoveredTeam={hoveredTeam}
+                onHoverTeam={setHoveredTeam}
+              />
+            </div>
+
+            {rightQuarters.map((match, index) => (
+              <div
+                key={`rqf-${index}`}
+                className="absolute z-10"
+                style={{ left: x.rightQF, top: y.qf[index] }}
+              >
+                <BracketMatch
+                  match={match}
+                  championTeam={championTeam}
+                  hoveredTeam={hoveredTeam}
+                  onHoverTeam={setHoveredTeam}
+                />
+              </div>
+            ))}
+
+            {rightRound16.map((match, index) => (
+              <div
+                key={`rr16-${index}`}
+                className="absolute z-10"
+                style={{ left: x.rightR16, top: y.r16[index] }}
+              >
+                <BracketMatch
+                  match={match}
+                  championTeam={championTeam}
+                  hoveredTeam={hoveredTeam}
+                  onHoverTeam={setHoveredTeam}
+                />
+              </div>
+            ))}
           </div>
-
-          {rightQuarters.map((match, index) => (
-            <div key={`rqf-${index}`} className="absolute z-10" style={{ left: x.rightQF, top: y.qf[index] }}>
-              <BracketMatch match={match} championTeam={championTeam} hoveredTeam={hoveredTeam} onHoverTeam={setHoveredTeam} />
-            </div>
-          ))}
-
-          {rightRound16.map((match, index) => (
-            <div key={`rr16-${index}`} className="absolute z-10" style={{ left: x.rightR16, top: y.r16[index] }}>
-              <BracketMatch match={match} championTeam={championTeam} hoveredTeam={hoveredTeam} onHoverTeam={setHoveredTeam} />
-            </div>
-          ))}
         </div>
       </div>
     </div>
@@ -865,150 +1172,759 @@ function Bracket2025() {
 }
 
 function groupStatusLabel(qualified: string, pos: number) {
-  if (qualified === 'round16' || pos <= 2) return 'Classificado';
-  if (qualified === 'sudamericana' || pos === 3) return 'Sul-Americana';
-  return 'Desclassificado';
+  if (qualified === "round16" || pos <= 2) return "Classificado";
+  if (qualified === "sudamericana" || pos === 3) return "Sul-Americana";
+  return "Desclassificado";
 }
 
 function groupStatusClasses(qualified: string, pos: number) {
-  if (qualified === 'round16' || pos <= 2) {
-    return 'border-green-500/25 bg-green-500/10 text-green-300';
+  if (qualified === "round16" || pos <= 2) {
+    return "border-green-500/25 bg-green-500/10 text-green-300";
   }
 
-  if (qualified === 'sudamericana' || pos === 3) {
-    return 'border-blue-400/25 bg-blue-400/10 text-blue-300';
+  if (qualified === "sudamericana" || pos === 3) {
+    return "border-blue-400/25 bg-blue-400/10 text-blue-300";
   }
 
-  return 'border-red-500/25 bg-red-500/10 text-red-300';
+  return "border-red-500/25 bg-red-500/10 text-red-300";
 }
 
 function statTextClass(value: number, positiveGood = true) {
-  if (value > 0) return positiveGood ? 'text-green-300' : 'text-red-300';
-  if (value < 0) return positiveGood ? 'text-red-300' : 'text-green-300';
-  return 'text-slate-300';
+  if (value > 0) return positiveGood ? "text-green-300" : "text-red-300";
+  if (value < 0) return positiveGood ? "text-red-300" : "text-green-300";
+  return "text-slate-300";
 }
 
-function GroupCard({ group }: { group: any }) {
+type MatchFormResult = "V" | "E" | "D";
+
+function getMatchTimestamp(match: any) {
+  const rawDate =
+    match.matchDate ||
+    match.date ||
+    match.kickoff ||
+    match.createdAt ||
+    match.updatedAt ||
+    "";
+
+  const timestamp = new Date(rawDate).getTime();
+
+  return Number.isFinite(timestamp) ? timestamp : 0;
+}
+
+function buildRecentFormFromMatches({
+  teamId,
+  teamName,
+  groupName,
+  matches,
+}: {
+  teamId?: number | null;
+  teamName: string;
+  groupName?: string;
+  matches?: any[];
+}): MatchFormResult[] {
+  if (!matches || matches.length === 0) return [];
+
+  const normalizedTeamName = normalizeTeamName(teamName);
+  const groupLetter = String(groupName || "")
+    .replace(/grupo/i, "")
+    .trim()
+    .toUpperCase();
+
+  return matches
+    .filter((match: any) => {
+      const isCompleted =
+        match.status === "completed" &&
+        match.homeScore !== null &&
+        match.homeScore !== undefined &&
+        match.awayScore !== null &&
+        match.awayScore !== undefined;
+
+      if (!isCompleted) return false;
+
+      if (
+        groupLetter &&
+        match.group &&
+        String(match.group).toUpperCase() !== groupLetter
+      ) {
+        return false;
+      }
+
+      const homeName = normalizeTeamName(
+        match.homeTeam?.name || match.homeTeamName || "",
+      );
+      const awayName = normalizeTeamName(
+        match.awayTeam?.name || match.awayTeamName || "",
+      );
+
+      return (
+        (teamId !== null &&
+          teamId !== undefined &&
+          (match.homeTeamId === teamId || match.awayTeamId === teamId)) ||
+        homeName === normalizedTeamName ||
+        awayName === normalizedTeamName
+      );
+    })
+    .sort((a: any, b: any) => getMatchTimestamp(b) - getMatchTimestamp(a))
+    .slice(0, 5)
+    .map((match: any) => {
+      const isHome =
+        teamId !== null && teamId !== undefined
+          ? match.homeTeamId === teamId
+          : normalizeTeamName(
+              match.homeTeam?.name || match.homeTeamName || "",
+            ) === normalizedTeamName;
+
+      const goalsFor = isHome
+        ? Number(match.homeScore)
+        : Number(match.awayScore);
+      const goalsAgainst = isHome
+        ? Number(match.awayScore)
+        : Number(match.homeScore);
+
+      if (goalsFor > goalsAgainst) return "V";
+      if (goalsFor < goalsAgainst) return "D";
+      return "E";
+    });
+}
+
+function buildRecentFormFallback(team: any): MatchFormResult[] {
+  if (Array.isArray(team.recentForm)) {
+    return team.recentForm
+      .map((result: string) => String(result).toUpperCase())
+      .filter((result: string) => ["V", "E", "D", "W", "L"].includes(result))
+      .map((result: string) => {
+        if (result === "W") return "V";
+        if (result === "L") return "D";
+        return result as MatchFormResult;
+      })
+      .slice(0, 5);
+  }
+
+  const fallback: MatchFormResult[] = [];
+
+  for (let index = 0; index < Number(team.w || 0); index++) fallback.push("V");
+  for (let index = 0; index < Number(team.d || 0); index++) fallback.push("E");
+  for (let index = 0; index < Number(team.l || 0); index++) fallback.push("D");
+
+  return fallback.slice(0, 5);
+}
+
+function FormBadge({ result }: { result: MatchFormResult }) {
+  const classes: Record<MatchFormResult, string> = {
+    V: "bg-emerald-500 text-slate-950",
+    E: "bg-slate-500 text-white",
+    D: "bg-red-500 text-white",
+  };
+
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-slate-700/70 bg-slate-950 shadow-2xl">
-      <div className="absolute inset-0 opacity-[0.045] bg-[radial-gradient(circle_at_center,_white_1px,_transparent_1px)] [background-size:22px_22px]" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(37,99,235,0.22),_transparent_48%)]" />
+    <span
+      title={result === "V" ? "Vitória" : result === "E" ? "Empate" : "Derrota"}
+      className={`inline-flex h-5 min-w-5 items-center justify-center rounded-[5px] px-1 text-[10px] font-black ${classes[result]}`}
+    >
+      {result}
+    </span>
+  );
+}
 
-      <div className="relative z-10">
-        <div className="flex items-center justify-between border-b border-white/10 bg-blue-950/70 px-5 py-4">
-          <div>
-            <h3 className="text-sm font-black uppercase tracking-widest text-white">
-              {group.name}
-            </h3>
-            <p className="mt-1 text-[9px] font-black uppercase tracking-[0.24em] text-blue-200/60">
-              Fase de grupos
-            </p>
-          </div>
+function getGroupLetterFromName(groupName?: string | null) {
+  const value = String(groupName || "").trim();
+  const direct = value.match(/grupo\s+([a-h])/i);
+  if (direct) return direct[1].toUpperCase();
+  const lastLetter = value.match(/([A-H])$/i);
+  return lastLetter ? lastLetter[1].toUpperCase() : value.toUpperCase();
+}
 
-          <div className="rounded-2xl border border-blue-400/20 bg-blue-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-blue-200">
-            CONMEBOL LIBERTADORES
-          </div>
+function getMatchDateLabel(match: any) {
+  const timestamp = getMatchTimestamp(match);
+  if (!timestamp) return "Data a definir";
+
+  return new Date(timestamp).toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+  });
+}
+
+function getMatchTimeLabel(match: any) {
+  const timestamp = getMatchTimestamp(match);
+  if (!timestamp) return "--:--";
+
+  return new Date(timestamp).toLocaleTimeString("pt-BR", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function capitalizeLabel(value: string) {
+  if (!value) return value;
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+function getMatchDateWeekdayTimeLabel(match: any) {
+  const timestamp = getMatchTimestamp(match);
+  if (!timestamp) return "Data a definir";
+
+  const date = new Date(timestamp);
+  const dayMonth = date.toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+  });
+  const weekday = capitalizeLabel(
+    date.toLocaleDateString("pt-BR", { weekday: "long" }),
+  );
+  const time = date.toLocaleTimeString("pt-BR", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  return `${dayMonth} · ${weekday} · ${time}`;
+}
+
+function getRoundLabel(match: any, index: number) {
+  const explicitRound =
+    match.round ||
+    match.rodada ||
+    match.roundNumber ||
+    match.round_number ||
+    match.matchday ||
+    match.matchDay ||
+    null;
+
+  if (
+    explicitRound !== null &&
+    explicitRound !== undefined &&
+    explicitRound !== ""
+  ) {
+    const cleanRound = String(explicitRound)
+      .replace(/^rodada\s*/i, "")
+      .trim();
+    return `Rodada ${cleanRound}`;
+  }
+
+  return `Jogo ${index + 1}`;
+}
+
+function getTeamNameForFixture(
+  match: any,
+  side: "home" | "away",
+  teamNameById: Record<number, string>,
+) {
+  const teamId = side === "home" ? match.homeTeamId : match.awayTeamId;
+  const embeddedTeam = side === "home" ? match.homeTeam : match.awayTeam;
+  const alternativeName =
+    side === "home" ? match.homeTeamName : match.awayTeamName;
+
+  return normalizeTeamName(
+    embeddedTeam?.name ||
+      alternativeName ||
+      teamNameById[teamId] ||
+      `Time ${teamId}`,
+  );
+}
+
+function FixtureStatusBadge({ match }: { match: any }) {
+  const isCompleted =
+    match.status === "completed" &&
+    match.homeScore !== null &&
+    match.homeScore !== undefined &&
+    match.awayScore !== null &&
+    match.awayScore !== undefined;
+
+  const isLive = match.status === "in_progress";
+
+  if (isCompleted) {
+    return (
+      <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400">
+        Saiba como foi
+      </span>
+    );
+  }
+
+  if (isLive) {
+    return (
+      <span className="rounded-full border border-yellow-400/20 bg-yellow-400/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-widest text-yellow-300">
+        Ao vivo
+      </span>
+    );
+  }
+
+  return (
+    <span className="rounded-full border border-blue-400/20 bg-blue-400/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-widest text-blue-300">
+      A jogar
+    </span>
+  );
+}
+
+function GroupFixturesPanel({
+  group,
+  matches,
+}: {
+  group: any;
+  matches?: any[];
+}) {
+  const [activeRoundIndex, setActiveRoundIndex] = useState(0);
+  const groupLetter = getGroupLetterFromName(group.name);
+  const teamNameById = (group.teams || []).reduce(
+    (acc: Record<number, string>, team: any) => {
+      if (team.teamId !== null && team.teamId !== undefined) {
+        acc[team.teamId] = normalizeTeamName(team.name);
+      }
+      return acc;
+    },
+    {},
+  );
+
+  const groupMatches = (matches || [])
+    .filter(
+      (match: any) => String(match.group || "").toUpperCase() === groupLetter,
+    )
+    .sort((a: any, b: any) => {
+      const dateDiff = getMatchTimestamp(a) - getMatchTimestamp(b);
+      if (dateDiff !== 0) return dateDiff;
+      return Number(a.id || 0) - Number(b.id || 0);
+    });
+
+  const rounds = groupMatches
+    .reduce((acc: any[], match: any, index: number) => {
+      const explicitRound =
+        match.round ||
+        match.rodada ||
+        match.roundNumber ||
+        match.round_number ||
+        match.matchday ||
+        match.matchDay ||
+        null;
+
+      const derivedRound = Math.floor(index / 2) + 1;
+      const rawRound =
+        explicitRound !== null &&
+        explicitRound !== undefined &&
+        explicitRound !== ""
+          ? explicitRound
+          : derivedRound;
+      const cleanRound = String(rawRound)
+        .replace(/^rodada\s*/i, "")
+        .trim();
+      const roundNumber = Number(cleanRound) || derivedRound;
+      const roundLabel = `Rodada ${roundNumber}`;
+      const existingRound = acc.find(
+        (item) => item.key === String(roundNumber),
+      );
+
+      if (existingRound) {
+        existingRound.matches.push(match);
+      } else {
+        acc.push({
+          key: String(roundNumber),
+          label: roundLabel,
+          number: roundNumber,
+          matches: [match],
+        });
+      }
+
+      return acc;
+    }, [])
+    .sort((a, b) => a.number - b.number);
+
+  useEffect(() => {
+    if (rounds.length === 0) {
+      if (activeRoundIndex !== 0) setActiveRoundIndex(0);
+      return;
+    }
+
+    if (activeRoundIndex > rounds.length - 1) {
+      setActiveRoundIndex(rounds.length - 1);
+    }
+  }, [activeRoundIndex, rounds.length]);
+
+  const activeRound = rounds[activeRoundIndex];
+  const goToPreviousRound = () => {
+    setActiveRoundIndex((current) => Math.max(0, current - 1));
+  };
+
+  const goToNextRound = () => {
+    setActiveRoundIndex((current) => Math.min(rounds.length - 1, current + 1));
+  };
+
+  return (
+    <aside className="flex h-fit min-h-[285px] self-start flex-col rounded-2xl border border-white/10 bg-slate-950/60 p-3 sm:p-4">
+      {rounds.length === 0 ? (
+        <div className="rounded-xl border border-dashed border-white/10 bg-white/[0.025] p-4 text-center text-[11px] font-bold leading-relaxed text-slate-500">
+          Rodadas ainda não cadastradas para este grupo.
         </div>
+      ) : (
+        <div className="flex h-fit flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#10161b]">
+          <div className="grid grid-cols-[42px_minmax(0,1fr)_42px] items-center border-b border-white/10 bg-white/[0.025]">
+            <button
+              type="button"
+              onClick={goToPreviousRound}
+              disabled={activeRoundIndex === 0}
+              className={`flex h-12 items-center justify-center text-2xl font-black transition ${
+                activeRoundIndex === 0
+                  ? "cursor-not-allowed text-slate-700"
+                  : "text-slate-300 hover:bg-white/[0.06] hover:text-white"
+              }`}
+              aria-label="Rodada anterior"
+            >
+              ‹
+            </button>
 
-        <div className="px-4 pt-4 pb-5">
-          <div className="grid grid-cols-[44px_minmax(0,1fr)_285px] items-center gap-3 px-2 pb-2 text-[9px] font-black uppercase tracking-widest text-slate-400">
-            <div className="text-center">#</div>
-            <div>Time</div>
-            <div className="grid grid-cols-5 gap-2 text-center">
-              <div>PTS</div>
-              <div>V</div>
-              <div>E</div>
-              <div>D</div>
-              <div>SG</div>
+            <div className="text-center text-sm font-black uppercase tracking-wide text-white">
+              {activeRound?.label}
             </div>
+
+            <button
+              type="button"
+              onClick={goToNextRound}
+              disabled={activeRoundIndex === rounds.length - 1}
+              className={`flex h-12 items-center justify-center text-2xl font-black transition ${
+                activeRoundIndex === rounds.length - 1
+                  ? "cursor-not-allowed text-slate-700"
+                  : "text-emerald-400 hover:bg-white/[0.06] hover:text-emerald-300"
+              }`}
+              aria-label="Próxima rodada"
+            >
+              ›
+            </button>
           </div>
 
-          <div className="space-y-2.5">
-            {group.teams.map((team: any) => {
-              const statusLabel = groupStatusLabel(team.qualified, team.pos);
-              const statusClasses = groupStatusClasses(team.qualified, team.pos);
-              const gd = team.gd ?? ((team.gf ?? 0) - (team.ga ?? 0));
+          <div className="flex-1 divide-y divide-white/10 overflow-hidden">
+            {activeRound.matches.map((match: any, index: number) => {
+              const homeName = getTeamNameForFixture(
+                match,
+                "home",
+                teamNameById,
+              );
+              const awayName = getTeamNameForFixture(
+                match,
+                "away",
+                teamNameById,
+              );
+              const isCompleted =
+                match.status === "completed" &&
+                match.homeScore !== null &&
+                match.homeScore !== undefined &&
+                match.awayScore !== null &&
+                match.awayScore !== undefined;
+              const venue = match.venue || match.stadium || match.local || "";
 
               return (
                 <div
-                  key={team.name}
-                  className={`grid grid-cols-[44px_minmax(0,1fr)_285px] items-center gap-3 rounded-2xl border px-2 py-2.5 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl ${
-                    team.pos <= 2
-                      ? 'border-green-500/20 bg-green-500/[0.055] hover:border-green-400/40 hover:shadow-green-500/10'
-                      : team.pos === 3
-                        ? 'border-blue-400/15 bg-blue-400/[0.045] hover:border-blue-300/35 hover:shadow-blue-400/10'
-                        : 'border-red-500/15 bg-red-500/[0.035] hover:border-red-400/35 hover:shadow-red-500/10'
-                  }`}
+                  key={
+                    match.id ||
+                    `${groupLetter}-${activeRound.key}-${index}-${homeName}-${awayName}`
+                  }
+                  className="bg-white/[0.015] px-3 py-3 transition hover:bg-white/[0.04]"
                 >
-                  <div className="flex justify-center">
-                    <span className={`flex h-8 w-8 items-center justify-center rounded-xl text-xs font-black ${
-                      team.pos <= 2
-                        ? 'bg-green-500/15 text-green-300'
-                        : team.pos === 3
-                          ? 'bg-blue-400/15 text-blue-300'
-                          : 'bg-red-500/15 text-red-300'
-                    }`}>
-                      {team.pos}
-                    </span>
-                  </div>
-
-                  <div className="min-w-0">
-                    <div className="flex min-w-0 items-center gap-3">
-                      <ClubBadge clubName={team.name} teamId={team.teamId} size="sm" />
-                      <div className="min-w-0">
-                        <div className="truncate text-xs font-black text-white">
-                          {normalizeTeamName(team.name)}
-                        </div>
-                        <div className={`mt-1 inline-flex rounded-full border px-2 py-0.5 text-[8px] font-black uppercase tracking-widest ${statusClasses}`}>
-                          {statusLabel}
-                        </div>
-                      </div>
+                  <div className="mb-2 text-center text-[10px] font-bold leading-relaxed text-slate-400">
+                    <div className="truncate">
+                      {venue || "Estádio a definir"}
+                    </div>
+                    <div className="font-black text-slate-200">
+                      {getMatchDateWeekdayTimeLabel(match)}
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-5 gap-2 text-center">
-                    <div className="rounded-xl bg-white/[0.045] px-2 py-2 text-sm font-black text-white">
-                      {team.pts ?? 0}
+                  <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
+                    <div className="flex min-w-0 items-center justify-end gap-2 text-right">
+                      <span className="truncate text-xs font-bold text-slate-200">
+                        {homeName}
+                      </span>
+                      <ClubBadge
+                        clubName={homeName}
+                        teamId={match.homeTeamId}
+                        size="sm"
+                      />
                     </div>
-                    <div className="rounded-xl bg-white/[0.035] px-2 py-2 text-sm font-black text-slate-200">
-                      {team.w ?? 0}
+
+                    <div className="flex min-w-[70px] items-center justify-center gap-2 text-lg font-black text-white">
+                      {isCompleted ? (
+                        <>
+                          <span>{match.homeScore}</span>
+                          <span className="text-slate-500">×</span>
+                          <span>{match.awayScore}</span>
+                        </>
+                      ) : (
+                        <span className="rounded-lg bg-slate-900 px-2 py-1 text-[11px] text-slate-300">
+                          {getMatchTimeLabel(match)}
+                        </span>
+                      )}
                     </div>
-                    <div className="rounded-xl bg-white/[0.035] px-2 py-2 text-sm font-black text-slate-200">
-                      {team.d ?? 0}
+
+                    <div className="flex min-w-0 items-center gap-2">
+                      <ClubBadge
+                        clubName={awayName}
+                        teamId={match.awayTeamId}
+                        size="sm"
+                      />
+                      <span className="truncate text-xs font-bold text-slate-200">
+                        {awayName}
+                      </span>
                     </div>
-                    <div className="rounded-xl bg-white/[0.035] px-2 py-2 text-sm font-black text-slate-200">
-                      {team.l ?? 0}
-                    </div>
-                    <div className={`rounded-xl bg-white/[0.035] px-2 py-2 text-sm font-black ${statTextClass(gd)}`}>
-                      {gd > 0 ? `+${gd}` : gd}
-                    </div>
+                  </div>
+
+                  <div className="mt-2 flex justify-center">
+                    <FixtureStatusBadge match={match} />
                   </div>
                 </div>
               );
             })}
           </div>
+
+          <div className="flex items-center justify-center gap-1 border-t border-white/10 px-3 py-1">
+            {rounds.map((round, index) => (
+              <button
+                key={round.key}
+                type="button"
+                onClick={() => setActiveRoundIndex(index)}
+                className={`h-1.5 rounded-full transition ${
+                  index === activeRoundIndex
+                    ? "w-6 bg-blue-500"
+                    : "w-1.5 bg-white/20 hover:bg-white/40"
+                }`}
+                aria-label={`Ir para ${round.label}`}
+              />
+            ))}
+          </div>
         </div>
+      )}
+    </aside>
+  );
+}
+function GroupCard({ group, matches }: { group: any; matches?: any[] }) {
+  const groupTitle = String(group.name || "").replace("GRUPO ", "Grupo ");
+  const [rulesOpen, setRulesOpen] = useState(false);
+
+  return (
+    <div className="overflow-hidden rounded-3xl border border-slate-700/70 bg-[#14191c] shadow-2xl">
+      <div className="flex items-center justify-between gap-3 border-b border-white/10 px-4 py-4 sm:px-5">
+        <div className="flex min-w-0 items-center gap-3">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-yellow-500/10 text-xl text-yellow-400">
+            ❱
+          </div>
+          <div className="min-w-0">
+            <h3 className="truncate text-sm font-black text-white sm:text-lg">
+              CONMEBOL Libertadores, {groupTitle}
+            </h3>
+            <p className="mt-1 text-[10px] font-black uppercase tracking-widest text-blue-200/55">
+              Classificação da fase de grupos
+            </p>
+          </div>
+        </div>
+
+        <div className="hidden rounded-xl border border-white/10 bg-white/[0.035] px-3 py-2 text-[10px] font-black uppercase tracking-widest text-slate-300 sm:block">
+          Classificação
+        </div>
+      </div>
+
+      <div className="grid items-start gap-4 p-3 sm:p-4 xl:grid-cols-[minmax(0,785px)_minmax(320px,1fr)]">
+        <div className="relative top-2 self-center flex h-fit flex-col overflow-hidden rounded-2xl border border-white/10 bg-slate-950/35">
+          <div className="overflow-x-auto">
+            <div className="min-w-[760px] px-3 py-3">
+              <div className="grid grid-cols-[34px_minmax(190px,1fr)_34px_34px_34px_34px_48px_58px_116px_44px] items-center gap-2 px-1 pb-2 text-[10px] font-black uppercase tracking-wide text-slate-500">
+                <div className="text-center">#</div>
+                <div>Time</div>
+                <div className="text-center" title="Partidas">
+                  P
+                </div>
+                <div className="text-center" title="Vitórias">
+                  V
+                </div>
+                <div className="text-center" title="Empates">
+                  E
+                </div>
+                <div className="text-center" title="Derrotas">
+                  D
+                </div>
+                <div className="text-center" title="Saldo de gols">
+                  SG
+                </div>
+                <div className="text-center" title="Gols pró e gols contra">
+                  GP:GC
+                </div>
+                <div
+                  className="text-center"
+                  title="Últimos 5 jogos cadastrados"
+                >
+                  Últimos 5
+                </div>
+                <div className="text-right" title="Pontos">
+                  PTS
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                {group.teams.map((team: any) => {
+                  const gd = team.gd ?? (team.gf ?? 0) - (team.ga ?? 0);
+                  const played =
+                    team.pld ??
+                    Number(team.w || 0) +
+                      Number(team.d || 0) +
+                      Number(team.l || 0);
+                  const recentFormFromMatches = buildRecentFormFromMatches({
+                    teamId: team.teamId,
+                    teamName: team.name,
+                    groupName: group.name,
+                    matches,
+                  });
+                  const recentForm =
+                    recentFormFromMatches.length > 0
+                      ? recentFormFromMatches
+                      : buildRecentFormFallback(team);
+
+                  const positionClasses =
+                    team.pos <= 2
+                      ? "bg-emerald-500 text-slate-950"
+                      : team.pos === 3
+                        ? "bg-sky-500 text-slate-950"
+                        : "bg-slate-950 text-white";
+
+                  return (
+                    <div
+                      key={team.name}
+                      className={`grid grid-cols-[34px_minmax(190px,1fr)_34px_34px_34px_34px_48px_58px_116px_44px] items-center gap-2 rounded-xl px-1 py-2 text-[12px] font-black text-white transition hover:bg-white/[0.04] ${
+                        team.pos === 1 ? "bg-white/[0.035]" : ""
+                      }`}
+                    >
+                      <div className="flex justify-center">
+                        <span
+                          className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-black ${positionClasses}`}
+                        >
+                          {team.pos}
+                        </span>
+                      </div>
+
+                      <div className="flex min-w-0 items-center gap-2">
+                        <ClubBadge
+                          clubName={team.name}
+                          teamId={team.teamId}
+                          size="sm"
+                        />
+                        <span className="truncate text-white">
+                          {normalizeTeamName(team.name)}
+                        </span>
+                      </div>
+
+                      <div className="text-center">{played}</div>
+                      <div className="text-center">{team.w ?? 0}</div>
+                      <div className="text-center text-slate-300">
+                        {team.d ?? 0}
+                      </div>
+                      <div className="text-center text-red-300">
+                        {team.l ?? 0}
+                      </div>
+                      <div className={`text-center ${statTextClass(gd)}`}>
+                        {gd > 0 ? `+${gd}` : gd}
+                      </div>
+                      <div className="text-center">
+                        {team.gf ?? 0}:{team.ga ?? 0}
+                      </div>
+                      <div className="flex items-center justify-center gap-1 rounded bg-white/10 px-1 py-0.5">
+                        {recentForm.length > 0 ? (
+                          recentForm.map((result, index) => (
+                            <FormBadge
+                              key={`${team.name}-${result}-${index}`}
+                              result={result}
+                            />
+                          ))
+                        ) : (
+                          <span className="text-[10px] font-black text-slate-500">
+                            Sem jogos
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-right text-white">
+                        {team.pts ?? 0}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+          <div className="border-t border-white/10 bg-[#05090c]">
+            <button
+              type="button"
+              onClick={() => setRulesOpen((current) => !current)}
+              className="flex h-11 w-full items-center justify-between px-4 text-left text-xs font-black text-white transition hover:bg-white/[0.035]"
+              aria-expanded={rulesOpen}
+            >
+              <span>Regras</span>
+              <span className="flex h-6 w-6 items-center justify-center text-white/85">
+                {rulesOpen ? (
+                  <ChevronUp className="h-4 w-4" strokeWidth={3} />
+                ) : (
+                  <ChevronDown className="h-4 w-4" strokeWidth={3} />
+                )}
+              </span>
+            </button>
+
+            {rulesOpen && (
+              <div className="space-y-3 border-t border-white/10 bg-[#070c0f] px-4 pb-4 pt-3 text-[11px] font-bold leading-relaxed text-slate-200">
+                <div className="flex flex-wrap gap-4 text-[11px]">
+                  <div className="inline-flex items-center gap-2 text-slate-300">
+                    <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                    Play-off
+                  </div>
+                  <div className="inline-flex items-center gap-2 text-slate-300">
+                    <span className="h-2 w-2 rounded-full bg-sky-500" />
+                    Taça Sul-Americana
+                  </div>
+                </div>
+
+                <p className="max-w-4xl text-white">
+                  Se duas equipes empatarem na classificação, os critérios de
+                  desempate são: 1. Confronto direto entre as equipes em
+                  questão, 1a. Total de pontos, 1b. Diferença de gols, 1c. Gols
+                  marcados, 2. Diferença de gols, 3. Gols marcados.
+                </p>
+
+                <div className="grid max-w-xl grid-cols-[56px_1fr] gap-x-4 gap-y-2 text-[11px]">
+                  <div className="font-black text-slate-400">P</div>
+                  <div>Jogos disputados</div>
+                  <div className="font-black text-slate-400">V</div>
+                  <div>Vitórias</div>
+                  <div className="font-black text-slate-400">E</div>
+                  <div>Empates</div>
+                  <div className="font-black text-slate-400">D</div>
+                  <div>Derrotas</div>
+                  <div className="font-black text-slate-400">SG</div>
+                  <div>Saldo de gols</div>
+                  <div className="font-black text-slate-400">GP:GC</div>
+                  <div>Gols pró / gols contra</div>
+                  <div className="font-black text-slate-400">PTS</div>
+                  <div>Pontos</div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <GroupFixturesPanel group={group} matches={matches} />
       </div>
     </div>
   );
 }
 
-function GroupsBoard({ groups }: { groups: any[] }) {
+function GroupsBoard({ groups, matches }: { groups: any[]; matches?: any[] }) {
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-border bg-slate-950 p-5">
+    <div className="relative overflow-hidden rounded-3xl border border-border bg-slate-950 p-4 sm:p-5">
       <div className="absolute inset-0 opacity-[0.035] bg-[radial-gradient(circle_at_center,_white_1px,_transparent_1px)] [background-size:24px_24px]" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(30,64,175,0.17),_transparent_58%)]" />
 
-      <div className="relative z-10 grid grid-cols-1 xl:grid-cols-2 gap-5">
+      <div className="relative z-10 grid grid-cols-1 gap-5">
         {groups.map((group) => (
-          <GroupCard key={group.name} group={group} />
+          <GroupCard key={group.name} group={group} matches={matches} />
         ))}
       </div>
     </div>
   );
 }
 
-function aplicarDesempateConmebol(times: any[], matches: any[], groupLetter: string) {
+function aplicarDesempateConmebol(
+  times: any[],
+  matches: any[],
+  groupLetter: string,
+) {
   const gruposPorPontos: Record<number, any[]> = {};
 
   times.forEach((t) => {
@@ -1028,15 +1944,16 @@ function aplicarDesempateConmebol(times: any[], matches: any[], groupLetter: str
 
       const ids = grupo.map((t) => t.teamId);
 
-      const confrontos = matches.filter((m: any) =>
-        m.group === groupLetter &&
-        ids.includes(m.homeTeamId) &&
-        ids.includes(m.awayTeamId) &&
-        m.status === 'completed' &&
-        m.homeScore !== null &&
-        m.homeScore !== undefined &&
-        m.awayScore !== null &&
-        m.awayScore !== undefined
+      const confrontos = matches.filter(
+        (m: any) =>
+          m.group === groupLetter &&
+          ids.includes(m.homeTeamId) &&
+          ids.includes(m.awayTeamId) &&
+          m.status === "completed" &&
+          m.homeScore !== null &&
+          m.homeScore !== undefined &&
+          m.awayScore !== null &&
+          m.awayScore !== undefined,
       );
 
       const mini: Record<number, { pts: number; sg: number; gm: number }> = {};
@@ -1099,17 +2016,17 @@ function aplicarDesempateConmebol(times: any[], matches: any[], groupLetter: str
 }
 
 function StatusBadge({ status }: { status: string }) {
-  const isQualified = status === 'Classificado';
-  const isPlaying = status === 'Pontuando na Libertadores 2026';
+  const isQualified = status === "Classificado";
+  const isPlaying = status === "Pontuando na Libertadores 2026";
 
   return (
     <span
       className={`inline-flex items-center justify-center rounded-full px-3 py-1 text-[10px] font-black ${
         isQualified
-          ? 'bg-green-500/15 text-green-600 border border-green-500/25'
+          ? "bg-green-500/15 text-green-600 border border-green-500/25"
           : isPlaying
-            ? 'bg-blue-500/10 text-blue-600 border border-blue-500/25'
-            : 'bg-slate-500/10 text-slate-500 border border-slate-500/20'
+            ? "bg-blue-500/10 text-blue-600 border border-blue-500/25"
+            : "bg-slate-500/10 text-slate-500 border border-slate-500/20"
       }`}
     >
       {status}
@@ -1117,17 +2034,23 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-export default function RankingTable({ onLeaderScoreChange }: RankingTableProps) {
-  const [abaAtiva, setAbaAtiva] = useState<Aba>('mundial');
-  const [subAba, setSubAba] = useState<SubAba2025>('grupos');
+export default function RankingTable({
+  onLeaderScoreChange,
+}: RankingTableProps) {
+  const [abaAtiva, setAbaAtiva] = useState<Aba>("mundial");
+  const [subAba, setSubAba] = useState<SubAba2025>("grupos");
 
-  const { data: matches2026, isLoading: isLoadingMatches, error: matchesError } =
-    trpc.libertadores.matches.list.useQuery({ season: 2026 });
+  const {
+    data: matches2026,
+    isLoading: isLoadingMatches,
+    error: matchesError,
+  } = trpc.libertadores.matches.list.useQuery({ season: 2026 });
 
   const { data: teamsData } = trpc.libertadores.teams.list.useQuery();
 
-  const { data: disciplineData } =
-    trpc.libertadores.discipline.list.useQuery({ season: 2026 });
+  const { data: disciplineData } = trpc.libertadores.discipline.list.useQuery({
+    season: 2026,
+  });
 
   const teamIdByName = useMemo(() => {
     const map: Record<string, number> = { ...fallbackTeamIdByName };
@@ -1156,7 +2079,7 @@ export default function RankingTable({ onLeaderScoreChange }: RankingTableProps)
     const groups: Record<string, any> = {};
 
     matches2026.forEach((m: any) => {
-      if (!m.group || m.phase !== 'Fase de Grupos') return;
+      if (!m.group || m.phase !== "Fase de Grupos") return;
 
       if (!groups[m.group]) groups[m.group] = {};
 
@@ -1181,7 +2104,7 @@ export default function RankingTable({ onLeaderScoreChange }: RankingTableProps)
       });
 
       if (
-        m.status === 'completed' &&
+        m.status === "completed" &&
         m.homeScore !== null &&
         m.homeScore !== undefined &&
         m.awayScore !== null &&
@@ -1217,36 +2140,42 @@ export default function RankingTable({ onLeaderScoreChange }: RankingTableProps)
       }
     });
 
-    return Object.keys(groups).sort().map((letter) => ({
-      name: `GRUPO ${letter}`,
-      teams: aplicarDesempateConmebol(
-        Object.values(groups[letter]),
-        matches2026,
-        letter
-      ).map((t: any, i: number) => {
-        const team = teamMap[t.teamId];
-        const name = team?.name || `Time ID ${t.teamId}`;
-        const gd = t.gf - t.ga;
+    return Object.keys(groups)
+      .sort()
+      .map((letter) => ({
+        name: `GRUPO ${letter}`,
+        teams: aplicarDesempateConmebol(
+          Object.values(groups[letter]),
+          matches2026,
+          letter,
+        ).map((t: any, i: number) => {
+          const team = teamMap[t.teamId];
+          const name = team?.name || `Time ID ${t.teamId}`;
+          const gd = t.gf - t.ga;
 
-        return {
-          ...t,
-          gd,
-          pos: i + 1,
-          name,
-          qualified: i < 2 ? 'round16' : i === 2 ? 'sudamericana' : 'eliminated',
-        };
-      })
-    }));
+          return {
+            ...t,
+            gd,
+            pos: i + 1,
+            name,
+            qualified:
+              i < 2 ? "round16" : i === 2 ? "sudamericana" : "eliminated",
+          };
+        }),
+      }));
   }, [matches2026, teamsData, disciplineData]);
 
   const rankingMundialDinamico = useMemo(() => {
     const mapRanking = new Map<string, any>();
-    const backendCountryByName: Record<string, { code: string; country: string }> = {};
+    const backendCountryByName: Record<
+      string,
+      { code: string; country: string }
+    > = {};
 
     const normalizePhaseName = (phase?: string | null) =>
-      String(phase || '')
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
+      String(phase || "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
         .toLowerCase()
         .trim();
 
@@ -1254,28 +2183,28 @@ export default function RankingTable({ onLeaderScoreChange }: RankingTableProps)
       const normalizedPhase = normalizePhaseName(phase);
 
       if (
-        normalizedPhase.includes('oitavas') ||
-        normalizedPhase.includes('round of 16') ||
-        normalizedPhase.includes('round16')
+        normalizedPhase.includes("oitavas") ||
+        normalizedPhase.includes("round of 16") ||
+        normalizedPhase.includes("round16")
       ) {
         return 1;
       }
 
       if (
-        normalizedPhase.includes('quartas') ||
-        normalizedPhase.includes('quarter')
+        normalizedPhase.includes("quartas") ||
+        normalizedPhase.includes("quarter")
       ) {
         return 2;
       }
 
       if (
-        normalizedPhase.includes('semi') ||
-        normalizedPhase.includes('semifinal')
+        normalizedPhase.includes("semi") ||
+        normalizedPhase.includes("semifinal")
       ) {
         return 3;
       }
 
-      if (normalizedPhase.includes('final')) {
+      if (normalizedPhase.includes("final")) {
         return 4;
       }
 
@@ -1283,14 +2212,14 @@ export default function RankingTable({ onLeaderScoreChange }: RankingTableProps)
     };
 
     const isCompletedMatch = (match: any) =>
-      match.status === 'completed' &&
+      match.status === "completed" &&
       match.homeScore !== null &&
       match.homeScore !== undefined &&
       match.awayScore !== null &&
       match.awayScore !== undefined;
 
     const parseAggregateScore = (agg?: string | null) => {
-      const match = String(agg || '').match(/(\d+)\D+(\d+)/);
+      const match = String(agg || "").match(/(\d+)\D+(\d+)/);
 
       if (!match) return null;
 
@@ -1303,21 +2232,27 @@ export default function RankingTable({ onLeaderScoreChange }: RankingTableProps)
     const ensureTeam = (
       teamName: string,
       teamId?: number | null,
-      backendCountry?: { code: string; country: string } | null
+      backendCountry?: { code: string; country: string } | null,
     ) => {
       const normalizedName = normalizeTeamName(teamName);
       const currentTeam = mapRanking.get(normalizedName);
 
       if (currentTeam) {
-        currentTeam.teamId = currentTeam.teamId || teamId || teamIdByName[normalizedName];
-        currentTeam.backendCountry = currentTeam.backendCountry || backendCountry || null;
+        currentTeam.teamId =
+          currentTeam.teamId || teamId || teamIdByName[normalizedName];
+        currentTeam.backendCountry =
+          currentTeam.backendCountry || backendCountry || null;
         return currentTeam;
       }
 
       const newTeam = {
         name: normalizedName,
         teamId: teamId || teamIdByName[normalizedName],
-        backendCountry: backendCountry || backendCountryByName[normalizedName] || backendCountryByName[teamName] || null,
+        backendCountry:
+          backendCountry ||
+          backendCountryByName[normalizedName] ||
+          backendCountryByName[teamName] ||
+          null,
         points2025: 0,
         points2026: 0,
         matchPoints2025: 0,
@@ -1334,11 +2269,7 @@ export default function RankingTable({ onLeaderScoreChange }: RankingTableProps)
       return newTeam;
     };
 
-    const addMatchPoints = (
-      team: any,
-      season: 2025 | 2026,
-      points: number
-    ) => {
+    const addMatchPoints = (team: any, season: 2025 | 2026, points: number) => {
       if (season === 2025) {
         team.matchPoints2025 += points;
         team.points2025 += points;
@@ -1353,7 +2284,7 @@ export default function RankingTable({ onLeaderScoreChange }: RankingTableProps)
     const addAdvance = (
       team: any,
       season: 2025 | 2026,
-      advanceOrder: number
+      advanceOrder: number,
     ) => {
       if (advanceOrder <= 0) return;
 
@@ -1368,7 +2299,7 @@ export default function RankingTable({ onLeaderScoreChange }: RankingTableProps)
 
     const addKnockoutMatch2025 = (
       match: KnockoutMatch,
-      winnerAdvanceOrder: number
+      winnerAdvanceOrder: number,
     ) => {
       const team1 = ensureTeam(match.team1);
       const team2 = ensureTeam(match.team2);
@@ -1405,7 +2336,9 @@ export default function RankingTable({ onLeaderScoreChange }: RankingTableProps)
       ensureTeam(
         team.name,
         teamIdByName[normalizeTeamName(team.name)],
-        backendCountryByName[normalizeTeamName(team.name)] || backendCountryByName[team.name] || null
+        backendCountryByName[normalizeTeamName(team.name)] ||
+          backendCountryByName[team.name] ||
+          null,
       );
     });
 
@@ -1417,7 +2350,7 @@ export default function RankingTable({ onLeaderScoreChange }: RankingTableProps)
         rankingTeam.matchPoints2025 += team.pts ?? 0;
         rankingTeam.points2025 += team.pts ?? 0;
 
-        if (team.qualified === 'round16' || team.pos <= 2) {
+        if (team.qualified === "round16" || team.pos <= 2) {
           addAdvance(rankingTeam, 2025, 1);
         }
       });
@@ -1472,12 +2405,12 @@ export default function RankingTable({ onLeaderScoreChange }: RankingTableProps)
       .map((team) => {
         const advancePoints2025 = team.advances2025.size * 3;
         const advancePoints2026 = team.advances2026.size * 3;
-        let status = 'Não pontua em 2026';
+        let status = "Não pontua em 2026";
 
-        if (team.name === 'Flamengo') {
-          status = 'Classificado';
+        if (team.name === "Flamengo") {
+          status = "Classificado";
         } else if (team.played2026) {
-          status = 'Pontuando na Libertadores 2026';
+          status = "Pontuando na Libertadores 2026";
         }
 
         return {
@@ -1488,7 +2421,11 @@ export default function RankingTable({ onLeaderScoreChange }: RankingTableProps)
           advancePoints2026,
           points2025: team.matchPoints2025 + advancePoints2025,
           points2026: team.matchPoints2026 + advancePoints2026,
-          points: team.matchPoints2025 + advancePoints2025 + team.matchPoints2026 + advancePoints2026,
+          points:
+            team.matchPoints2025 +
+            advancePoints2025 +
+            team.matchPoints2026 +
+            advancePoints2026,
         };
       })
       .filter((team) => team.points > 0)
@@ -1505,27 +2442,27 @@ export default function RankingTable({ onLeaderScoreChange }: RankingTableProps)
   return (
     <div className="w-full max-w-[1500px] mx-auto bg-card rounded-[32px] shadow-2xl overflow-hidden border border-border transition-colors duration-300">
       <div className="bg-slate-950 p-4 flex gap-2 overflow-x-auto border-b border-white/5">
-        {(['mundial', '2025', '2026'] as Aba[]).map((aba) => (
+        {(["mundial", "2025", "2026"] as Aba[]).map((aba) => (
           <button
             key={aba}
             onClick={() => setAbaAtiva(aba)}
             className={`px-6 py-3 rounded-2xl font-black text-[10px] tracking-widest uppercase transition-all ${
               abaAtiva === aba
-                ? aba === 'mundial'
-                  ? 'bg-yellow-500 text-black'
-                  : aba === '2025'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-green-600 text-white'
-                : 'text-white/40 hover:text-white'
+                ? aba === "mundial"
+                  ? "bg-yellow-500 text-black"
+                  : aba === "2025"
+                    ? "bg-blue-600 text-white"
+                    : "bg-green-600 text-white"
+                : "text-white/40 hover:text-white"
             }`}
           >
-            {aba === 'mundial' ? 'Ranking Mundial 2029' : `Libertadores ${aba}`}
+            {aba === "mundial" ? "Ranking Mundial 2029" : `Libertadores ${aba}`}
           </button>
         ))}
       </div>
 
       <div className="p-6 md:p-8 bg-card">
-        {abaAtiva === 'mundial' && (
+        {abaAtiva === "mundial" && (
           <div className="relative overflow-hidden rounded-3xl border border-border bg-slate-950 p-5 md:p-6">
             <div className="absolute inset-0 opacity-[0.035] bg-[radial-gradient(circle_at_center,_white_1px,_transparent_1px)] [background-size:24px_24px]" />
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(234,179,8,0.16),_transparent_42%),radial-gradient(circle_at_bottom_right,_rgba(37,99,235,0.16),_transparent_50%)]" />
@@ -1548,21 +2485,27 @@ export default function RankingTable({ onLeaderScoreChange }: RankingTableProps)
 
               <div className="grid grid-cols-3 gap-2 rounded-3xl border border-white/10 bg-white/[0.035] p-2 text-center">
                 <div className="rounded-2xl bg-yellow-400/10 px-4 py-3">
-                  <div className="text-[9px] font-black uppercase tracking-widest text-yellow-200/70">Líder</div>
+                  <div className="text-[9px] font-black uppercase tracking-widest text-yellow-200/70">
+                    Líder
+                  </div>
                   <div className="mt-1 truncate text-xs font-black text-white">
-                    {rankingMundialDinamico[0]?.name ?? '-'}
+                    {rankingMundialDinamico[0]?.name ?? "-"}
                   </div>
                 </div>
 
                 <div className="rounded-2xl bg-green-400/10 px-4 py-3">
-                  <div className="text-[9px] font-black uppercase tracking-widest text-green-200/70">Pontos</div>
+                  <div className="text-[9px] font-black uppercase tracking-widest text-green-200/70">
+                    Pontos
+                  </div>
                   <div className="mt-1 text-xs font-black text-white">
                     {rankingMundialDinamico[0]?.points ?? 0}
                   </div>
                 </div>
 
                 <div className="rounded-2xl bg-blue-400/10 px-4 py-3">
-                  <div className="text-[9px] font-black uppercase tracking-widest text-blue-200/70">Clubes</div>
+                  <div className="text-[9px] font-black uppercase tracking-widest text-blue-200/70">
+                    Clubes
+                  </div>
                   <div className="mt-1 text-xs font-black text-white">
                     {rankingMundialDinamico.length}
                   </div>
@@ -1583,35 +2526,40 @@ export default function RankingTable({ onLeaderScoreChange }: RankingTableProps)
                   {rankingMundialDinamico.map((club, i) => {
                     const isTopThree = i < 3;
                     const isLeader = i === 0;
-                    const isFlamengo = club.name === 'Flamengo';
+                    const isFlamengo = club.name === "Flamengo";
 
                     return (
                       <div
                         key={club.name}
                         className={`grid grid-cols-[76px_minmax(280px,1fr)_260px_140px] items-center gap-4 rounded-2xl border px-4 py-3 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl ${
                           isLeader
-                            ? 'border-yellow-400/35 bg-yellow-400/[0.075] shadow-yellow-500/10 hover:border-yellow-300/60'
+                            ? "border-yellow-400/35 bg-yellow-400/[0.075] shadow-yellow-500/10 hover:border-yellow-300/60"
                             : isTopThree
-                              ? 'border-blue-400/20 bg-blue-400/[0.045] hover:border-blue-300/40 hover:shadow-blue-500/10'
+                              ? "border-blue-400/20 bg-blue-400/[0.045] hover:border-blue-300/40 hover:shadow-blue-500/10"
                               : isFlamengo
-                                ? 'border-green-400/25 bg-green-400/[0.055] hover:border-green-300/50 hover:shadow-green-500/10'
-                                : 'border-slate-700/70 bg-white/[0.025] hover:border-slate-500/80 hover:bg-white/[0.045]'
+                                ? "border-green-400/25 bg-green-400/[0.055] hover:border-green-300/50 hover:shadow-green-500/10"
+                                : "border-slate-700/70 bg-white/[0.025] hover:border-slate-500/80 hover:bg-white/[0.045]"
                         }`}
                       >
                         <div className="flex justify-center">
-                          <span className={`flex h-10 w-10 items-center justify-center rounded-2xl text-sm font-black italic ${
-                            isLeader
-                              ? 'bg-yellow-400 text-black shadow-lg shadow-yellow-500/20'
-                              : isTopThree
-                                ? 'bg-blue-400/15 text-blue-200'
-                                : 'bg-slate-800 text-slate-300'
-                          }`}>
+                          <span
+                            className={`flex h-10 w-10 items-center justify-center rounded-2xl text-sm font-black italic ${
+                              isLeader
+                                ? "bg-yellow-400 text-black shadow-lg shadow-yellow-500/20"
+                                : isTopThree
+                                  ? "bg-blue-400/15 text-blue-200"
+                                  : "bg-slate-800 text-slate-300"
+                            }`}
+                          >
                             {i + 1}
                           </span>
                         </div>
 
                         <div className="flex min-w-0 items-center gap-4">
-                          <ClubBadge clubName={club.name} teamId={club.teamId} />
+                          <ClubBadge
+                            clubName={club.name}
+                            teamId={club.teamId}
+                          />
                           <div className="min-w-0">
                             <div className="truncate text-sm font-black uppercase text-white">
                               {club.name}
@@ -1619,10 +2567,22 @@ export default function RankingTable({ onLeaderScoreChange }: RankingTableProps)
                             <div className="mt-1 inline-flex items-center gap-1.5 rounded-full border border-blue-400/15 bg-blue-400/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-widest text-blue-200">
                               <img
                                 src={`https://flagcdn.com/w40/${getTeamCountryLabel(club.name, club.backendCountry).code}.png`}
-                                alt={getTeamCountryLabel(club.name, club.backendCountry).country}
+                                alt={
+                                  getTeamCountryLabel(
+                                    club.name,
+                                    club.backendCountry,
+                                  ).country
+                                }
                                 className="w-4 h-4 rounded-[3px] border border-white/10 object-cover"
                               />
-                              <span>{getTeamCountryLabel(club.name, club.backendCountry).country}</span>
+                              <span>
+                                {
+                                  getTeamCountryLabel(
+                                    club.name,
+                                    club.backendCountry,
+                                  ).country
+                                }
+                              </span>
                             </div>
                           </div>
                         </div>
@@ -1635,10 +2595,10 @@ export default function RankingTable({ onLeaderScoreChange }: RankingTableProps)
                           <span
                             className={`inline-flex min-w-[86px] items-center justify-center rounded-2xl px-4 py-2 text-sm font-black shadow-lg ${
                               isLeader
-                                ? 'bg-yellow-400 text-black shadow-yellow-500/20'
+                                ? "bg-yellow-400 text-black shadow-yellow-500/20"
                                 : isFlamengo
-                                  ? 'bg-green-500 text-white shadow-green-500/20'
-                                  : 'bg-white text-slate-950 shadow-black/10'
+                                  ? "bg-green-500 text-white shadow-green-500/20"
+                                  : "bg-white text-slate-950 shadow-black/10"
                             }`}
                           >
                             {club.points}
@@ -1653,29 +2613,33 @@ export default function RankingTable({ onLeaderScoreChange }: RankingTableProps)
           </div>
         )}
 
-        {abaAtiva === '2025' && (
+        {abaAtiva === "2025" && (
           <>
             <div className="flex gap-2 mb-6 border-b border-border pb-4">
               <button
-                onClick={() => setSubAba('grupos')}
+                onClick={() => setSubAba("grupos")}
                 className={`px-5 py-2.5 rounded-xl font-black text-[11px] tracking-widest transition-all ${
-                  subAba === 'grupos' ? 'bg-blue-600 text-white shadow-lg' : 'bg-muted text-muted-foreground'
+                  subAba === "grupos"
+                    ? "bg-blue-600 text-white shadow-lg"
+                    : "bg-muted text-muted-foreground"
                 }`}
               >
                 FASE DE GRUPOS
               </button>
 
               <button
-                onClick={() => setSubAba('mata-mata')}
+                onClick={() => setSubAba("mata-mata")}
                 className={`px-5 py-2.5 rounded-xl font-black text-[11px] tracking-widest transition-all ${
-                  subAba === 'mata-mata' ? 'bg-blue-600 text-white shadow-lg' : 'bg-muted text-muted-foreground'
+                  subAba === "mata-mata"
+                    ? "bg-blue-600 text-white shadow-lg"
+                    : "bg-muted text-muted-foreground"
                 }`}
               >
                 MATA-MATA
               </button>
             </div>
 
-            {subAba === 'grupos' ? (
+            {subAba === "grupos" ? (
               <GroupsBoard groups={grupos2025} />
             ) : (
               <Bracket2025 />
@@ -1683,7 +2647,7 @@ export default function RankingTable({ onLeaderScoreChange }: RankingTableProps)
           </>
         )}
 
-        {abaAtiva === '2026' && (
+        {abaAtiva === "2026" && (
           <>
             {isLoadingMatches ? (
               <div className="text-center py-10 text-muted-foreground italic">
@@ -1694,10 +2658,11 @@ export default function RankingTable({ onLeaderScoreChange }: RankingTableProps)
                 Erro ao buscar jogos de 2026: {matchesError.message}
               </div>
             ) : grupos2026Dinamico.length > 0 ? (
-              <GroupsBoard groups={grupos2026Dinamico} />
+              <GroupsBoard groups={grupos2026Dinamico} matches={matches2026} />
             ) : (
               <div className="text-center py-10 text-muted-foreground italic">
-                Nenhum jogo processado para 2026. Verifique se o backend está rodando.
+                Nenhum jogo processado para 2026. Verifique se o backend está
+                rodando.
               </div>
             )}
           </>

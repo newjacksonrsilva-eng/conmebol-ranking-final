@@ -116,6 +116,9 @@ export const libertadoresRouter = router({
           homeTeamId: z.number(),
           awayTeamId: z.number(),
           matchDate: z.date(),
+          stadium: z.string().optional(),
+          matchTime: z.string().optional(),
+          videoUrl: z.string().optional(),
         })
       )
       .mutation(async ({ input }) => {
@@ -130,9 +133,12 @@ export const libertadoresRouter = router({
             homeScore,
             awayScore,
             status,
-            matchDate
+            matchDate,
+            stadium,
+            matchTime,
+            videoUrl
           )
-          VALUES (?, ?, ?, ?, ?, NULL, NULL, 'scheduled', ?)
+          VALUES (?, ?, ?, ?, ?, NULL, NULL, 'scheduled', ?, ?, ?, ?)
           `,
           [
             input.season,
@@ -141,6 +147,9 @@ export const libertadoresRouter = router({
             input.homeTeamId,
             input.awayTeamId,
             input.matchDate,
+            input.stadium || null,
+            input.matchTime || null,
+            input.videoUrl || null,
           ]
         );
 
@@ -154,6 +163,9 @@ export const libertadoresRouter = router({
           homeScore: z.number().nullable().optional(),
           awayScore: z.number().nullable().optional(),
           status: z.enum(["scheduled", "in_progress", "completed"]).optional(),
+          stadium: z.string().optional(),
+          matchTime: z.string().optional(),
+          videoUrl: z.string().optional(),
         })
       )
       .mutation(async ({ input }) => {
@@ -174,6 +186,22 @@ export const libertadoresRouter = router({
           fields.push("status = ?");
           params.push(input.status ?? null);
         }
+
+        if ("stadium" in input) {
+          fields.push("stadium = ?");
+          params.push(input.stadium ?? null);
+        }
+
+        if ("matchTime" in input) {
+          fields.push("matchTime = ?");
+          params.push(input.matchTime ?? null);
+        }
+
+        if ("videoUrl" in input) {
+          fields.push("videoUrl = ?");
+          params.push(input.videoUrl ?? null);
+        }
+
 
         if (fields.length === 0) {
           return { success: true };

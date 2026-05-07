@@ -264,6 +264,9 @@ export default function Admin() {
         phase: 'Fase de Grupos',
         group: 'A',
         matchDate: new Date().toISOString().split('T')[0],
+        stadium: '',
+        matchTime: '',
+        videoUrl: '',
       });
 
       alert('Jogo criado com sucesso! Ele já deve aparecer em Resultados rápidos.');
@@ -303,6 +306,9 @@ export default function Admin() {
     phase: 'Fase de Grupos',
     group: 'A',
     matchDate: new Date().toISOString().split('T')[0],
+        stadium: '',
+        matchTime: '',
+        videoUrl: '',
   });
 
   const [newTeam, setNewTeam] = useState({
@@ -389,6 +395,9 @@ export default function Admin() {
 
     upsertDisciplineMutation.mutate({
       season: Number(season),
+                    stadium: newMatch.stadium,
+                    matchTime: newMatch.matchTime,
+                    videoUrl: newMatch.videoUrl,
       group: disciplineGroup,
       teamId,
       yellowCards: Number(draft.yellowCards || 0),
@@ -874,6 +883,43 @@ export default function Admin() {
                     className="rounded-2xl border-slate-700 bg-slate-950 text-white"
                   />
                 </div>
+              
+                <div>
+                  <label className="mb-2 block text-[10px] font-black uppercase tracking-widest text-slate-400">
+                    Estádio
+                  </label>
+                  <Input
+                    value={newMatch.stadium}
+                    onChange={(event) => setNewMatch({ ...newMatch, stadium: event.target.value })}
+                    placeholder="Ex: Maracanã"
+                    className="rounded-2xl border-slate-700 bg-slate-950 text-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-[10px] font-black uppercase tracking-widest text-slate-400">
+                    Horário
+                  </label>
+                  <Input
+                    type="time"
+                    value={newMatch.matchTime}
+                    onChange={(event) => setNewMatch({ ...newMatch, matchTime: event.target.value })}
+                    className="rounded-2xl border-slate-700 bg-slate-950 text-white"
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="mb-2 block text-[10px] font-black uppercase tracking-widest text-slate-400">
+                    Link YouTube (Saiba como foi)
+                  </label>
+                  <Input
+                    value={newMatch.videoUrl}
+                    onChange={(event) => setNewMatch({ ...newMatch, videoUrl: event.target.value })}
+                    placeholder="https://youtube.com/watch?v=..."
+                    className="rounded-2xl border-slate-700 bg-slate-950 text-white"
+                  />
+                </div>
+
               </div>
 
               {createMatchMutation.isError && (
@@ -907,6 +953,9 @@ export default function Admin() {
                     group: newMatch.group || undefined,
                     matchDate: new Date(newMatch.matchDate),
                     season: Number(season),
+                    stadium: newMatch.stadium,
+                    matchTime: newMatch.matchTime,
+                    videoUrl: newMatch.videoUrl,
                   };
 
                   console.log('Criando jogo:', payload);
@@ -918,6 +967,9 @@ export default function Admin() {
                     phase: 'Fase de Grupos',
                     group: newMatch.group || 'A',
                     matchDate: new Date().toISOString().split('T')[0],
+        stadium: '',
+        matchTime: '',
+        videoUrl: '',
                   });
                 }}
                 disabled={createMatchMutation.isPending}

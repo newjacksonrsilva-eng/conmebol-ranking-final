@@ -76,6 +76,9 @@ export const matches = mysqlTable("matches", {
   awayScore: int("awayScore"),
   status: varchar("status", { length: 50 }).notNull(), // "scheduled", "in_progress", "completed"
   matchDate: timestamp("matchDate").notNull(),
+  stadium: varchar("stadium", { length: 255 }),
+  matchTime: varchar("matchTime", { length: 20 }),
+  videoUrl: text("videoUrl"),
   homeTeamPoints: int("homeTeamPoints").default(0), // Pontos ganhos pelo time da casa
   awayTeamPoints: int("awayTeamPoints").default(0), // Pontos ganhos pelo time visitante
   processed: boolean("processed").default(false).notNull(), // Se os pontos já foram processados

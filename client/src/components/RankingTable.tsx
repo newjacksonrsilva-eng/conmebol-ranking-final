@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { ChevronDown, ChevronUp, Trophy } from "lucide-react";
+import { ChevronDown, ChevronUp, Trophy, X } from "lucide-react";
 import { rankingData } from "@/data/ranking";
 import {
   grupos2025,
@@ -1092,7 +1092,7 @@ function Bracket2025() {
               style={{ left: x.final, top: y.final }}
             >
               <div
-                className={`rounded-2xl bg-slate-900/90 p-3 transition-all duration-300 ${
+                className={`rounded-2xl bg-slate-900/90 p-2 transition-all duration-300 ${
                   hoveredTeam === championTeam
                     ? "border border-green-400 shadow-[0_0_28px_rgba(34,197,94,0.45)]"
                     : hoveredTeam &&
@@ -1205,6 +1205,18 @@ function getMatchTimestamp(match: any) {
     match.createdAt ||
     match.updatedAt ||
     "";
+
+  const rawTime = match.matchTime || match.match_time || "";
+
+  if (rawDate && rawTime) {
+    const datePart = String(rawDate).split("T")[0];
+    const timePart = String(rawTime).slice(0, 5);
+    const combinedTimestamp = new Date(`${datePart}T${timePart}:00`).getTime();
+
+    if (Number.isFinite(combinedTimestamp)) {
+      return combinedTimestamp;
+    }
+  }
 
   const timestamp = new Date(rawDate).getTime();
 
@@ -1345,6 +1357,12 @@ function getMatchDateLabel(match: any) {
 }
 
 function getMatchTimeLabel(match: any) {
+  const savedTime = match.matchTime || match.match_time || "";
+
+  if (savedTime) {
+    return String(savedTime).slice(0, 5);
+  }
+
   const timestamp = getMatchTimestamp(match);
   if (!timestamp) return "--:--";
 
@@ -1371,10 +1389,13 @@ function getMatchDateWeekdayTimeLabel(match: any) {
   const weekday = capitalizeLabel(
     date.toLocaleDateString("pt-BR", { weekday: "long" }),
   );
-  const time = date.toLocaleTimeString("pt-BR", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  const savedTime = match.matchTime || match.match_time || "";
+  const time = savedTime
+    ? String(savedTime).slice(0, 5)
+    : date.toLocaleTimeString("pt-BR", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
 
   return `${dayMonth} · ${weekday} · ${time}`;
 }
@@ -1421,7 +1442,125 @@ function getTeamNameForFixture(
   );
 }
 
-function FixtureStatusBadge({ match }: { match: any }) {
+
+function getYoutubeEmbedUrl(url?: string | null) {
+  if (!url) return null;
+
+  const value = String(url).trim();
+
+  if (!value) return null;
+
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=)([^&\s]+)/i,
+    /(?:youtu\.be\/)([^?\s]+)/i,
+    /(?:youtube\.com\/embed\/)([^?\s]+)/i,
+    /(?:youtube\.com\/shorts\/)([^?\s]+)/i,
+  ];
+
+  for (const pattern of patterns) {
+    const match = value.match(pattern);
+
+    if (match?.[1]) {
+      return `https://www.youtube.com/embed/${match[1]}?autoplay=1&rel=0`;
+    }
+  }
+
+  return null;
+}
+
+function MatchVideoModal({
+  match,
+  teamNameById,
+  onClose,
+}: {
+  match: any;
+  teamNameById: Record<number, string>;
+  onClose: () => void;
+}) {
+  const embedUrl = getYoutubeEmbedUrl(match.videoUrl || match.video_url);
+  const homeName = getTeamNameForFixture(match, "home", teamNameById);
+  const awayName = getTeamNameForFixture(match, "away", teamNameById);
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+    };
+
+    document.addEventListener("keydown", onKeyDown);
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = "";
+    };
+  }, [onClose]);
+
+  return (
+    <div
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 px-4 py-6 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-4xl overflow-hidden rounded-3xl border border-white/10 bg-slate-950 shadow-2xl"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="flex items-start justify-between gap-4 border-b border-white/10 bg-white/[0.035] px-4 py-4 sm:px-5">
+          <div className="min-w-0">
+            <p className="text-[10px] font-black uppercase tracking-widest text-emerald-400">
+              Saiba como foi
+            </p>
+            <h3 className="mt-1 truncate text-lg font-black text-white sm:text-xl">
+              {homeName} x {awayName}
+            </h3>
+            <p className="mt-1 text-xs font-bold text-slate-400">
+              {match.stadium || match.venue || match.local || "Estádio a definir"} · {getMatchDateWeekdayTimeLabel(match)}
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-white transition hover:bg-white/[0.10]"
+            aria-label="Fechar vídeo"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        {embedUrl ? (
+          <div className="aspect-video w-full bg-black">
+            <iframe
+              src={embedUrl}
+              title={`Vídeo ${homeName} x ${awayName}`}
+              className="h-full w-full"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+            />
+          </div>
+        ) : (
+          <div className="flex min-h-[260px] items-center justify-center px-6 py-10 text-center">
+            <div>
+              <p className="text-lg font-black text-white">
+                Vídeo ainda não cadastrado
+              </p>
+              <p className="mt-2 text-sm font-bold text-slate-400">
+                Adicione o link do YouTube no Admin para este jogo.
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function FixtureStatusBadge({
+  match,
+  onOpenVideo,
+}: {
+  match: any;
+  onOpenVideo: (match: any) => void;
+}) {
   const isCompleted =
     match.status === "completed" &&
     match.homeScore !== null &&
@@ -1430,12 +1569,22 @@ function FixtureStatusBadge({ match }: { match: any }) {
     match.awayScore !== undefined;
 
   const isLive = match.status === "in_progress";
+  const hasVideo = Boolean(match.videoUrl || match.video_url);
 
   if (isCompleted) {
     return (
-      <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400">
+      <button
+        type="button"
+        onClick={() => onOpenVideo(match)}
+        className={`text-[10px] font-black uppercase tracking-widest transition ${
+          hasVideo
+            ? "text-emerald-400 hover:text-emerald-300 hover:underline"
+            : "text-slate-500 hover:text-slate-300"
+        }`}
+        title={hasVideo ? "Abrir vídeo da partida" : "Vídeo ainda não cadastrado"}
+      >
         Saiba como foi
-      </span>
+      </button>
     );
   }
 
@@ -1462,6 +1611,7 @@ function GroupFixturesPanel({
   matches?: any[];
 }) {
   const [activeRoundIndex, setActiveRoundIndex] = useState(0);
+  const [selectedVideoMatch, setSelectedVideoMatch] = useState<any | null>(null);
   const groupLetter = getGroupLetterFromName(group.name);
   const teamNameById = (group.teams || []).reduce(
     (acc: Record<number, string>, team: any) => {
@@ -1546,13 +1696,14 @@ function GroupFixturesPanel({
   };
 
   return (
-    <aside className="flex h-fit min-h-[285px] self-start flex-col rounded-2xl border border-white/10 bg-slate-950/60 p-3 sm:p-4">
+    <>
+    <aside className="flex h-full min-h-[285px] flex-col rounded-2xl border border-white/10 bg-slate-950/60 p-2 sm:p-2.5">
       {rounds.length === 0 ? (
         <div className="rounded-xl border border-dashed border-white/10 bg-white/[0.025] p-4 text-center text-[11px] font-bold leading-relaxed text-slate-500">
           Rodadas ainda não cadastradas para este grupo.
         </div>
       ) : (
-        <div className="flex h-fit flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#10161b]">
+        <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#10161b]">
           <div className="grid grid-cols-[42px_minmax(0,1fr)_42px] items-center border-b border-white/10 bg-white/[0.025]">
             <button
               type="button"
@@ -1663,7 +1814,7 @@ function GroupFixturesPanel({
                   </div>
 
                   <div className="mt-2 flex justify-center">
-                    <FixtureStatusBadge match={match} />
+                    <FixtureStatusBadge match={match} onOpenVideo={setSelectedVideoMatch} />
                   </div>
                 </div>
               );
@@ -1688,21 +1839,149 @@ function GroupFixturesPanel({
         </div>
       )}
     </aside>
+    {selectedVideoMatch && (
+      <MatchVideoModal
+        match={selectedVideoMatch}
+        teamNameById={teamNameById}
+        onClose={() => setSelectedVideoMatch(null)}
+      />
+    )}
+    </>
   );
 }
-function GroupCard({ group, matches }: { group: any; matches?: any[] }) {
+
+function HistoricalGroupStatsPanel({ group }: { group: any }) {
+  const teams = group.teams || [];
+  const totalGoals = teams.reduce((sum: number, team: any) => sum + Number(team.gf || 0), 0);
+  const totalMatches = teams.reduce((sum: number, team: any) => sum + Number(team.pld || 0), 0) / 2;
+  const goalsPerMatch = totalMatches > 0 ? (totalGoals / totalMatches).toFixed(2) : "0.00";
+
+  const leader = [...teams].sort((a: any, b: any) => Number(b.pts || 0) - Number(a.pts || 0))[0];
+  const bestAttack = [...teams].sort((a: any, b: any) => Number(b.gf || 0) - Number(a.gf || 0))[0];
+  const bestDefense = [...teams].sort((a: any, b: any) => Number(a.ga || 0) - Number(b.ga || 0))[0];
+  const bestBalance = [...teams].sort((a: any, b: any) => Number(b.gd || 0) - Number(a.gd || 0))[0];
+  const mostLosses = [...teams].sort((a: any, b: any) => Number(b.l || 0) - Number(a.l || 0))[0];
+
+  const leaderEfficiency =
+    leader && Number(leader.pld || 0) > 0
+      ? Math.round((Number(leader.pts || 0) / (Number(leader.pld || 0) * 3)) * 100)
+      : 0;
+
+  const worstDefense = [...teams].sort((a: any, b: any) => Number(b.ga || 0) - Number(a.ga || 0))[0];
+
+  const stats = [
+    {
+      icon: "⚽",
+      label: "Gols marcados",
+      value: String(totalGoals),
+      detail: `${goalsPerMatch} por jogo`,
+      tone: "from-blue-500/20 to-cyan-400/10 border-blue-400/20",
+    },
+    {
+      teamName: bestAttack?.name,
+      label: "Melhor ataque",
+      value: bestAttack?.name || "-",
+      detail: `${bestAttack?.gf ?? 0} gols`,
+      tone: "from-orange-500/20 to-red-400/10 border-orange-400/20",
+    },
+    {
+      teamName: bestDefense?.name,
+      label: "Melhor defesa",
+      value: bestDefense?.name || "-",
+      detail: `${bestDefense?.ga ?? 0} sofridos`,
+      tone: "from-emerald-500/20 to-teal-400/10 border-emerald-400/20",
+    },
+    {
+      teamName: bestBalance?.name,
+      label: "Melhor saldo",
+      value: bestBalance?.name || "-",
+      detail: `${Number(bestBalance?.gd || 0) > 0 ? "+" : ""}${bestBalance?.gd ?? 0}`,
+      tone: "from-violet-500/20 to-fuchsia-400/10 border-violet-400/20",
+    },
+    {
+      teamName: leader?.name,
+      label: "Líder",
+      value: leader?.name || "-",
+      detail: `${leader?.pts ?? 0} pts · ${leaderEfficiency}%`,
+      tone: "from-yellow-500/20 to-amber-400/10 border-yellow-400/20",
+    },
+    {
+      teamName: worstDefense?.name,
+      label: "Pior defesa",
+      value: worstDefense?.name || "-",
+      detail: `${worstDefense?.ga ?? 0} sofridos`,
+      tone: "from-rose-500/20 to-red-400/10 border-rose-400/20",
+    },
+  ];
+
+  return (
+    <aside className="h-fit self-start rounded-2xl border border-white/10 bg-slate-950/60 p-2 sm:p-2.5">
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <div>
+          <h4 className="text-[12px] font-black uppercase tracking-wide text-white">
+            Estatísticas do grupo
+          </h4>
+        </div>
+
+        <span className="rounded-full border border-yellow-400/25 bg-yellow-400/10 px-2 py-0.5 text-[8px] font-black uppercase tracking-widest text-yellow-200">
+          Histórico
+        </span>
+      </div>
+
+      <div className="grid grid-cols-1 gap-1">
+        {stats.map((stat) => (
+          <div
+            key={`${stat.label}-${stat.value}`}
+            className={`group overflow-hidden rounded-xl border bg-gradient-to-br ${stat.tone} p-2 transition hover:-translate-y-0.5 hover:bg-white/[0.04]`}
+          >
+            <div className="flex items-center gap-2">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center">
+                {stat.teamName ? (
+                  <ClubBadge clubName={stat.teamName} size="sm" />
+                ) : (
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-black/20 text-base shadow-inner">
+                    {stat.icon}
+                  </div>
+                )}
+              </div>
+
+              <div className="min-w-0 flex-1">
+                <p className="text-[8px] font-black uppercase tracking-widest text-slate-400">
+                  {stat.label}
+                </p>
+                <p className="mt-0.5 truncate text-[12px] font-black text-white">
+                  {stat.value}
+                </p>
+              </div>
+
+              <div className="shrink-0 rounded-full border border-white/10 bg-black/20 px-2 py-0.5 text-[8px] font-black text-slate-200">
+                {stat.detail}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </aside>
+  );
+}
+
+function GroupCard({ group, matches, showFixtures = true }: { group: any; matches?: any[]; showFixtures?: boolean }) {
   const groupTitle = String(group.name || "").replace("GRUPO ", "Grupo ");
   const [rulesOpen, setRulesOpen] = useState(false);
 
   return (
     <div className="overflow-hidden rounded-3xl border border-slate-700/70 bg-[#14191c] shadow-2xl">
-      <div className="flex items-center justify-between gap-3 border-b border-white/10 px-4 py-4 sm:px-5">
-        <div className="flex min-w-0 items-center gap-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-yellow-500/10 text-xl text-yellow-400">
-            ❱
+      <div className="flex items-center justify-between gap-2 border-b border-white/10 px-4 py-4 sm:px-5">
+        <div className="flex min-w-0 items-center gap-2">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white shadow-inner">
+            <img
+              src="https://upload.wikimedia.org/wikipedia/pt/9/95/Conmebol_Libertadores_logo.svg"
+              alt="CONMEBOL Libertadores"
+              className="h-[30px] w-[30px] object-contain"
+            />
           </div>
           <div className="min-w-0">
-            <h3 className="truncate text-sm font-black text-white sm:text-lg">
+            <h3 className="truncate text-[13px] font-black text-white sm:text-lg">
               CONMEBOL Libertadores, {groupTitle}
             </h3>
             <p className="mt-1 text-[10px] font-black uppercase tracking-widest text-blue-200/55">
@@ -1899,13 +2178,17 @@ function GroupCard({ group, matches }: { group: any; matches?: any[] }) {
           </div>
         </div>
 
-        <GroupFixturesPanel group={group} matches={matches} />
+        {showFixtures ? (
+          <GroupFixturesPanel group={group} matches={matches} />
+        ) : (
+          <HistoricalGroupStatsPanel group={group} />
+        )}
       </div>
     </div>
   );
 }
 
-function GroupsBoard({ groups, matches }: { groups: any[]; matches?: any[] }) {
+function GroupsBoard({ groups, matches, showFixtures = true }: { groups: any[]; matches?: any[]; showFixtures?: boolean }) {
   return (
     <div className="relative overflow-hidden rounded-3xl border border-border bg-slate-950 p-4 sm:p-5">
       <div className="absolute inset-0 opacity-[0.035] bg-[radial-gradient(circle_at_center,_white_1px,_transparent_1px)] [background-size:24px_24px]" />
@@ -1913,7 +2196,7 @@ function GroupsBoard({ groups, matches }: { groups: any[]; matches?: any[] }) {
 
       <div className="relative z-10 grid grid-cols-1 gap-5">
         {groups.map((group) => (
-          <GroupCard key={group.name} group={group} matches={matches} />
+          <GroupCard key={group.name} group={group} matches={matches} showFixtures={showFixtures} />
         ))}
       </div>
     </div>
@@ -2640,7 +2923,7 @@ export default function RankingTable({
             </div>
 
             {subAba === "grupos" ? (
-              <GroupsBoard groups={grupos2025} />
+              <GroupsBoard groups={grupos2025} showFixtures={false} />
             ) : (
               <Bracket2025 />
             )}

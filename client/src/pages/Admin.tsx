@@ -69,10 +69,45 @@ function getTeamName(teams: any[] | undefined, teamId: number) {
 
 function getMatchDateLabel(matchDate: string | Date) {
   try {
-    return new Date(matchDate).toLocaleDateString('pt-BR');
+    const date = new Date(matchDate);
+    if (Number.isNaN(date.getTime())) return 'Data indefinida';
+    
+    // Usar métodos locais para evitar que o fuso horário mude o dia na exibição
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    
+    return `${day}/${month}/${year}`;
   } catch {
     return 'Data indefinida';
   }
+}
+
+function getDateInputValue(matchDate: string | Date | null | undefined) {
+  if (!matchDate) return new Date().toISOString().split('T')[0];
+
+  const date = new Date(matchDate);
+
+  if (Number.isNaN(date.getTime())) {
+    return new Date().toISOString().split('T')[0];
+  }
+
+  // Usar métodos locais para evitar bugs de fuso horário (que podem mudar o dia)
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function buildMatchDateTimeForSave(matchDate: string, matchTime?: string) {
+  const safeDate = matchDate || new Date().toISOString().split('T')[0];
+  const safeTime = matchTime && matchTime.trim() ? matchTime.slice(0, 5) : '12:00';
+
+  // Criar um objeto Date local para garantir que o TRPC/Zod receba o tipo correto
+  const [year, month, day] = safeDate.split('-').map(Number);
+  const [hours, minutes] = safeTime.split(':').map(Number);
+  
+  return new Date(year, month - 1, day, hours, minutes);
 }
 
 function ScoreInput({
@@ -106,19 +141,27 @@ function QuickScoreCard({
   match,
   teams,
   scoreDraft,
+  detailsDraft,
   onDraftChange,
+  onDetailsDraftChange,
   onSave,
+  onSaveDetails,
   onSetInProgress,
   onClear,
+  onDelete,
   isSaving,
 }: {
   match: any;
   teams: any[] | undefined;
   scoreDraft: { homeScore: string; awayScore: string };
+  detailsDraft: { matchDate: string; stadium: string; matchTime: string; videoUrl: string };
   onDraftChange: (value: { homeScore: string; awayScore: string }) => void;
+  onDetailsDraftChange: (value: { matchDate: string; stadium: string; matchTime: string; videoUrl: string }) => void;
   onSave: () => void;
+  onSaveDetails: () => void;
   onSetInProgress: () => void;
   onClear: () => void;
+  onDelete: () => void;
   isSaving: boolean;
 }) {
   const status = normalizeStatus(match.status);
@@ -191,7 +234,76 @@ function QuickScoreCard({
           </div>
         </div>
 
-        <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-3">
+        <div className="mt-4 grid grid-cols-1 gap-3 rounded-3xl border border-white/10 bg-white/[0.03] p-3 lg:grid-cols-[1fr_160px_150px]">
+          <div>
+            <label className="mb-1 block text-[9px] font-black uppercase tracking-widest text-slate-500">
+              Data
+            </label>
+            <Input
+              type="date"
+              value={detailsDraft.matchDate}
+              onChange={(event) =>
+                onDetailsDraftChange({ ...detailsDraft, matchDate: event.target.value })
+              }
+              className="rounded-2xl border-slate-700 bg-slate-950 text-white"
+            />
+          </div>
+
+          <div>
+            <label className="mb-1 block text-[9px] font-black uppercase tracking-widest text-slate-500">
+              Estádio
+            </label>
+            <Input
+              value={detailsDraft.stadium}
+              onChange={(event) =>
+                onDetailsDraftChange({ ...detailsDraft, stadium: event.target.value })
+              }
+              placeholder="Ex: Maracanã"
+              className="rounded-2xl border-slate-700 bg-slate-950 text-white"
+            />
+          </div>
+
+          <div>
+            <label className="mb-1 block text-[9px] font-black uppercase tracking-widest text-slate-500">
+              Horário
+            </label>
+            <Input
+              type="time"
+              value={detailsDraft.matchTime}
+              onChange={(event) =>
+                onDetailsDraftChange({ ...detailsDraft, matchTime: event.target.value })
+              }
+              className="rounded-2xl border-slate-700 bg-slate-950 text-white"
+            />
+          </div>
+
+          <div className="lg:col-span-3">
+            <label className="mb-1 block text-[9px] font-black uppercase tracking-widest text-slate-500">
+              Link do vídeo / YouTube
+            </label>
+            <Input
+              value={detailsDraft.videoUrl}
+              onChange={(event) =>
+                onDetailsDraftChange({ ...detailsDraft, videoUrl: event.target.value })
+              }
+              placeholder="https://youtube.com/watch?v=..."
+              className="rounded-2xl border-slate-700 bg-slate-950 text-white"
+            />
+          </div>
+
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onSaveDetails}
+            disabled={isSaving}
+            className="lg:col-span-2 rounded-2xl border-blue-500/30 bg-blue-500/10 font-black text-blue-200 hover:bg-blue-500/20"
+          >
+            <Save className="mr-2 h-4 w-4" />
+            Salvar data, estádio, horário e vídeo
+          </Button>
+        </div>
+
+        <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-4">
           <Button
             type="button"
             onClick={onSave}
@@ -202,16 +314,35 @@ function QuickScoreCard({
             Salvar final
           </Button>
 
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onSetInProgress}
+          <select
+            defaultValue=""
+            onChange={(event) => {
+              const value = event.target.value;
+
+              if (value === "in_progress") {
+                onSetInProgress();
+              }
+
+              if (value === "completed") {
+                onSave();
+              }
+
+              if (value === "scheduled") {
+                onClear();
+              }
+
+              event.target.value = "";
+            }}
             disabled={isSaving}
-            className="rounded-2xl border-yellow-500/30 bg-yellow-500/10 font-black text-yellow-200 hover:bg-yellow-500/20"
+            className="h-10 rounded-2xl border border-slate-700 bg-slate-950 px-3 text-sm font-black text-white outline-none transition hover:border-blue-500"
           >
-            <Clock className="mr-2 h-4 w-4" />
-            Em andamento
-          </Button>
+            <option value="" disabled>
+              Alterar status
+            </option>
+            <option value="scheduled">Agendado</option>
+            <option value="in_progress">Em andamento</option>
+            <option value="completed">Finalizado</option>
+          </select>
 
           <Button
             type="button"
@@ -222,6 +353,16 @@ function QuickScoreCard({
           >
             <RotateCcw className="mr-2 h-4 w-4" />
             Limpar
+          </Button>
+
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onDelete}
+            disabled={isSaving}
+            className="rounded-2xl border-red-500/35 bg-red-500/10 font-black text-red-200 hover:bg-red-500/20"
+          >
+            Excluir jogo
           </Button>
         </div>
       </div>
@@ -287,6 +428,17 @@ export default function Admin() {
     },
   });
 
+  const deleteMatchMutation = trpc.libertadores.matches.delete.useMutation({
+    onSuccess: async () => {
+      await refetchMatches();
+      alert('Jogo excluído com sucesso!');
+    },
+    onError: (error) => {
+      console.error('Erro ao excluir jogo:', error);
+      alert(`Erro ao excluir jogo: ${error.message}`);
+    },
+  });
+
   const createTeamMutation = trpc.libertadores.teams.create.useMutation({
     onSuccess: () => {
       refetchTeams();
@@ -317,6 +469,7 @@ export default function Admin() {
   });
 
   const [scoreDrafts, setScoreDrafts] = useState<Record<number, { homeScore: string; awayScore: string }>>({});
+  const [matchDetailsDrafts, setMatchDetailsDrafts] = useState<Record<number, { matchDate: string; stadium: string; matchTime: string; videoUrl: string }>>({});
   const [disciplineGroup, setDisciplineGroup] = useState('A');
   const [disciplineDrafts, setDisciplineDrafts] = useState<Record<string, { yellowCards: string; redCards: string }>>({});
 
@@ -364,6 +517,25 @@ export default function Admin() {
     }));
   };
 
+  const getDetailsDraft = (match: any) => {
+    return matchDetailsDrafts[match.id] || {
+      matchDate: getDateInputValue(match.matchDate),
+      stadium: match.stadium || '',
+      matchTime: match.matchTime || '',
+      videoUrl: match.videoUrl || '',
+    };
+  };
+
+  const setDetailsDraft = (
+    matchId: number,
+    value: { matchDate: string; stadium: string; matchTime: string; videoUrl: string }
+  ) => {
+    setMatchDetailsDrafts((previous) => ({
+      ...previous,
+      [matchId]: value,
+    }));
+  };
+
   const getDisciplineData = (teamId: number) => {
     return discipline?.find((item: any) => item.teamId === teamId && item.group === disciplineGroup);
   };
@@ -395,9 +567,6 @@ export default function Admin() {
 
     upsertDisciplineMutation.mutate({
       season: Number(season),
-                    stadium: newMatch.stadium,
-                    matchTime: newMatch.matchTime,
-                    videoUrl: newMatch.videoUrl,
       group: disciplineGroup,
       teamId,
       yellowCards: Number(draft.yellowCards || 0),
@@ -407,6 +576,7 @@ export default function Admin() {
 
   const saveResult = (match: any) => {
     const draft = getDraft(match);
+    const details = getDetailsDraft(match);
 
     if (draft.homeScore === '' || draft.awayScore === '') {
       alert('Preencha os dois placares antes de salvar.');
@@ -418,14 +588,62 @@ export default function Admin() {
       homeScore: Number(draft.homeScore),
       awayScore: Number(draft.awayScore),
       status: 'completed',
+      // Incluir detalhes para garantir que tudo seja salvo ao clicar em "Salvar final"
+      matchDate: buildMatchDateTimeForSave(details.matchDate, details.matchTime) as any,
+      stadium: details.stadium.trim() || null,
+      matchTime: details.matchTime.trim() || null,
+      videoUrl: details.videoUrl.trim() || null,
+    }, {
+      onSuccess: () => {
+        // Limpar rascunhos após sucesso
+        setMatchDetailsDrafts((prev) => {
+          const next = { ...prev };
+          delete next[match.id];
+          return next;
+        });
+        alert("Resultado e dados do jogo salvos com sucesso!");
+      }
     });
+  };
+
+  const saveMatchDetails = (match: any) => {
+    const draft = getDetailsDraft(match);
+
+    updateMatchMutation.mutate(
+      {
+        id: match.id,
+        matchDate: buildMatchDateTimeForSave(draft.matchDate, draft.matchTime) as any,
+        stadium: draft.stadium.trim() || null,
+        matchTime: draft.matchTime.trim() || null,
+        videoUrl: draft.videoUrl.trim() || null,
+      } as any,
+      {
+        onSuccess: async () => {
+          await refetchMatches();
+          // Limpar o rascunho local para que a UI use os dados atualizados do servidor
+          setMatchDetailsDrafts((prev) => {
+            const next = { ...prev };
+            delete next[match.id];
+            return next;
+          });
+          alert("Dados do jogo atualizados com sucesso!");
+        },
+      }
+    );
   };
 
   const setInProgress = (match: any) => {
     const draft = getDraft(match);
+    const details = getDetailsDraft(match);
+    
     const payload: any = {
       id: match.id,
       status: 'in_progress',
+      // Incluir detalhes para garantir consistência
+      matchDate: buildMatchDateTimeForSave(details.matchDate, details.matchTime),
+      stadium: details.stadium.trim() || null,
+      matchTime: details.matchTime.trim() || null,
+      videoUrl: details.videoUrl.trim() || null,
     };
 
     if (draft.homeScore !== '' && draft.awayScore !== '') {
@@ -433,7 +651,15 @@ export default function Admin() {
       payload.awayScore = Number(draft.awayScore);
     }
 
-    updateMatchMutation.mutate(payload);
+    updateMatchMutation.mutate(payload, {
+      onSuccess: () => {
+        setMatchDetailsDrafts((prev) => {
+          const next = { ...prev };
+          delete next[match.id];
+          return next;
+        });
+      }
+    });
   };
 
   const clearResult = (match: any) => {
@@ -445,6 +671,19 @@ export default function Admin() {
       awayScore: null,
       status: 'scheduled',
     });
+  };
+
+  const deleteMatch = (match: any) => {
+    const homeName = match.homeTeam?.name || getTeamName(teams, match.homeTeamId);
+    const awayName = match.awayTeam?.name || getTeamName(teams, match.awayTeamId);
+
+    const confirmed = window.confirm(
+      `Tem certeza que deseja excluir o jogo ${homeName} x ${awayName}? Essa ação não pode ser desfeita.`
+    );
+
+    if (!confirmed) return;
+
+    deleteMatchMutation.mutate({ id: match.id });
   };
 
   // Check admin access - comentado para desenvolvimento local
@@ -640,11 +879,15 @@ export default function Admin() {
                         match={match}
                         teams={teams}
                         scoreDraft={getDraft(match)}
+                        detailsDraft={getDetailsDraft(match)}
                         onDraftChange={(value) => setDraft(match.id, value)}
+                        onDetailsDraftChange={(value) => setDetailsDraft(match.id, value)}
                         onSave={() => saveResult(match)}
+                        onSaveDetails={() => saveMatchDetails(match)}
                         onSetInProgress={() => setInProgress(match)}
                         onClear={() => clearResult(match)}
-                        isSaving={updateMatchMutation.isPending}
+                        onDelete={() => deleteMatch(match)}
+                        isSaving={updateMatchMutation.isPending || deleteMatchMutation.isPending}
                       />
                     ))}
                   </div>

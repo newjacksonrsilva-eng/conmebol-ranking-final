@@ -115,10 +115,10 @@ export const libertadoresRouter = router({
           group: z.string().optional(),
           homeTeamId: z.number(),
           awayTeamId: z.number(),
-          matchDate: z.date(),
-          stadium: z.string().optional(),
-          matchTime: z.string().optional(),
-          videoUrl: z.string().optional(),
+          matchDate: z.union([z.date(), z.string()]),
+          stadium: z.string().nullable().optional(),
+          matchTime: z.string().nullable().optional(),
+          videoUrl: z.string().nullable().optional(),
         })
       )
       .mutation(async ({ input }) => {
@@ -160,62 +160,81 @@ export const libertadoresRouter = router({
       .input(
         z.object({
           id: z.number(),
+          matchDate: z.union([z.date(), z.string()]).optional(),
           homeScore: z.number().nullable().optional(),
           awayScore: z.number().nullable().optional(),
           status: z.enum(["scheduled", "in_progress", "completed"]).optional(),
-          stadium: z.string().optional(),
-          matchTime: z.string().optional(),
-          videoUrl: z.string().optional(),
+          stadium: z.string().nullable().optional(),
+          matchTime: z.string().nullable().optional(),
+          videoUrl: z.string().nullable().optional(),
         })
       )
       .mutation(async ({ input }) => {
-        const fields: string[] = [];
-        const params: any[] = [];
+        const updates: string[] = [];
+        const values: any[] = [];
 
-        if ("homeScore" in input) {
-          fields.push("homeScore = ?");
-          params.push(input.homeScore ?? null);
+        if (input.matchDate !== undefined) {
+          updates.push("matchDate = ?");
+          values.push(input.matchDate);
         }
 
-        if ("awayScore" in input) {
-          fields.push("awayScore = ?");
-          params.push(input.awayScore ?? null);
+        if (input.homeScore !== undefined) {
+          updates.push("homeScore = ?");
+          values.push(input.homeScore);
         }
 
-        if ("status" in input) {
-          fields.push("status = ?");
-          params.push(input.status ?? null);
+        if (input.awayScore !== undefined) {
+          updates.push("awayScore = ?");
+          values.push(input.awayScore);
         }
 
-        if ("stadium" in input) {
-          fields.push("stadium = ?");
-          params.push(input.stadium ?? null);
+        if (input.status !== undefined) {
+          updates.push("status = ?");
+          values.push(input.status);
         }
 
-        if ("matchTime" in input) {
-          fields.push("matchTime = ?");
-          params.push(input.matchTime ?? null);
+        if (input.stadium !== undefined) {
+          updates.push("stadium = ?");
+          values.push(input.stadium);
         }
 
-        if ("videoUrl" in input) {
-          fields.push("videoUrl = ?");
-          params.push(input.videoUrl ?? null);
+        if (input.matchTime !== undefined) {
+          updates.push("matchTime = ?");
+          values.push(input.matchTime);
         }
 
-
-        if (fields.length === 0) {
-          return { success: true };
+        if (input.videoUrl !== undefined) {
+          updates.push("videoUrl = ?");
+          values.push(input.videoUrl);
         }
 
-        params.push(input.id);
+        if (updates.length === 0) {
+          return { success: false, message: "Nenhum campo enviado" };
+        }
+
+        values.push(input.id);
 
         await getPool().query(
           `
           UPDATE matches
-          SET ${fields.join(", ")}
+          SET ${updates.join(", ")}
           WHERE id = ?
           `,
-          params
+          values
+        );
+
+        return { success: true };
+      }),
+
+    delete: publicProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        await getPool().query(
+          `
+          DELETE FROM matches
+          WHERE id = ?
+          `,
+          [input.id]
         );
 
         return { success: true };
